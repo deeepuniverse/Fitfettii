@@ -3152,10 +3152,10 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     const my=++vfTok; const b=vf(); b.hidden=false; b.className="vfill on";
     const val=()=>{ const o={}; d.fields.forEach(f=>{ o[f.key]=f.sel? f.value : (parseFloat(String(f.value).replace(",","."))||0); }); return o; };
     const html=()=>`<div class="vf-h"><b>${d.icon} ${e2(d.title)}</b><button type="button" class="vf-x" aria-label="${T("Kapat","Close")}">✕</button></div><p class="vf-say">“${e2(d.text)}”</p>
-      <div class="vf-grid">${d.fields.map((f,i)=>`<label class="vf-f${(!f.opt&&!(f.sel||parseFloat(String(f.value).replace(",",".")))>0)&&!f.sel?" miss":""}" data-i="${i}"><span>${e2(f.label)}</span><div>${f.sel?`<select data-i="${i}">${f.sel.map(o=>`<option value="${e2(o[0])}"${o[0]===f.value?" selected":""}>${e2(o[1])}</option>`).join("")}</select>`:`<input data-i="${i}" type="number" inputmode="decimal" min="0" step="any" value="${f.value||""}" placeholder="?">`}<em>${e2(f.unit||"")}</em></div></label>`).join("")}</div>
+      <div class="vf-grid">${d.fields.map((f,i)=>`<label class="vf-f${(((!f.opt&&!(f.sel||parseFloat(String(f.value).replace(",",".")))>0))||(f.askOpt&&!f.skipped&&!(parseFloat(String(f.value).replace(",","."))>0)))&&!f.sel?" miss":""}" data-i="${i}"><span>${e2(f.label)}</span><div>${f.sel?`<select data-i="${i}">${f.sel.map(o=>`<option value="${e2(o[0])}"${o[0]===f.value?" selected":""}>${e2(o[1])}</option>`).join("")}</select>`:`<input data-i="${i}" type="number" inputmode="decimal" min="0" step="any" value="${f.value||""}" placeholder="?">`}<em>${e2(f.unit||"")}</em></div></label>`).join("")}</div>
       <p class="vf-calc" id="vf-calc"></p><div class="vf-b"><button type="button" class="add food" id="vf-ok">${T("Ekle","Add")}</button><button type="button" class="btn-ghost" id="vf-no">${T("Vazgeç","Cancel")}</button></div>`;
     const missing=()=>d.fields.filter(f=>!f.opt&&!f.sel&&!(parseFloat(String(f.value).replace(",","."))>0));
-    const refresh=()=>{ const c=b.querySelector("#vf-calc"); if(c) c.textContent=d.calc?d.calc(val()):""; b.querySelectorAll(".vf-f").forEach(l=>{ const f=d.fields[+l.dataset.i]; l.classList.toggle("miss",!f.opt&&!f.sel&&!(parseFloat(String(f.value).replace(",","."))>0)); }); const ok=b.querySelector("#vf-ok"); if(ok) ok.disabled=missing().length>0; };
+    const refresh=()=>{ const c=b.querySelector("#vf-calc"); if(c) c.textContent=d.calc?d.calc(val()):""; b.querySelectorAll(".vf-f").forEach(l=>{ const f=d.fields[+l.dataset.i]; l.classList.toggle("miss",!f.sel&&!(parseFloat(String(f.value).replace(",","."))>0)&&((!f.opt)||(f.askOpt&&!f.skipped))); }); const ok=b.querySelector("#vf-ok"); if(ok) ok.disabled=missing().length>0; };
     b.innerHTML=html(); b.scrollIntoView({behavior:"smooth",block:"center"});
     b.querySelector(".vf-x").onclick=vfClose; b.querySelector("#vf-no").onclick=vfClose;
     const commit=()=>{ if(missing().length) return; const v=val(); vfClose(); d.commit(v); say(T("Eklendi.","Added.")); };
@@ -3175,7 +3175,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
       row.innerHTML=`<p class="vf-qh">${e2(f.q)}</p><div class="vf-chips">${CH.map(n=>`<button type="button" data-n="${n}">${n}</button>`).join("")}${f.askOpt?`<button type="button" data-n="0">${T("Yok","None")}</button>`:""}<button type="button" class="vf-mic">🎤 ${T("Konuş","Speak")}</button></div>`;
       b.querySelector(".vf-grid").after(row);
       let answered; const got=new Promise(r=>{ answered=r; });
-      const setVal=v=>{ f.value=v>0?String(v):""; inp.value=f.value; answered(true); };
+      const setVal=v=>{ if(f.askOpt&&!(v>0)) f.skipped=true; f.value=v>0?String(v):""; inp.value=f.value; answered(true); };
       row.querySelectorAll("[data-n]").forEach(x=>x.onclick=()=>setVal(+x.dataset.n));
       inp.addEventListener("change",()=>{ if(parseFloat(String(inp.value).replace(",","."))>0){ f.value=inp.value; answered(true); } });
       const NONE=/(^|\s)(yok|ağırlıksız|none|no|skip|geç|bodyweight)(\s|$)/;
