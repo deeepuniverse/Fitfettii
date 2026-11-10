@@ -3062,7 +3062,9 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     });
   }
   /* ===== Sesli komut: tüm uygulamayı yönetir (yemek, su, kilo, kardiyo, spor, özet, gün, sil) ===== */
-  const say=(txt,cb)=>{ if(S.vout===false||!window.speechSynthesis){ cb&&cb(); return; } let fin=false; const f=()=>{ if(!fin){ fin=true; cb&&cb(); } };
+  // iPhone: speaking switches the audio session to playback and the mic then hears nothing, so no spoken prompts there (questions stay on screen)
+  const IOS_=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  const say=(txt,cb)=>{ if(IOS_||S.vout===false||!window.speechSynthesis){ cb&&cb(); return; } let fin=false; const f=()=>{ if(!fin){ fin=true; cb&&cb(); } };
     try{ const u=new SpeechSynthesisUtterance(txt); u.lang=tr()?"tr-TR":"en-US"; u.onend=f; u.onerror=f; speechSynthesis.cancel(); speechSynthesis.speak(u); setTimeout(f,9000); }catch(e){ f(); } };
   let micErr="",micInfo="",micLog="";
   const inFrame=(()=>{ try{ return window.self!==window.top; }catch(e){ return true; } })();
@@ -3075,6 +3077,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   const hear=()=>new Promise(res=>{ if(!SR){ res(""); return; } try{ rec&&rec.abort(); }catch(e){}
     const r=new SR(); r.lang=tr()?"tr-TR":"en-US"; r.interimResults=true; r.maxAlternatives=1; r.continuous=false; let got="",last="",done=false,t0=Date.now(); micErr=""; micInfo=""; micLog="";
     const fin=()=>{ if(done) return; done=true; clearTimeout(tm); document.body.classList.remove("listening"); micInfo=`${micErr||"-"}/${Date.now()-t0}ms`; res(got||last); };
+    try{ window.speechSynthesis&&speechSynthesis.cancel(); }catch(e){}
     document.body.classList.add("listening");
     const live=x=>{ const el=document.querySelector("#vfill .vf-say"); if(el&&x) el.textContent="“"+x+"”"; };
     r.onresult=e=>{ let txt="",isF=false; for(let i=e.resultIndex;i<e.results.length;i++){ txt+=e.results[i][0].transcript; if(e.results[i].isFinal) isF=true; } last=txt||last; live(last); if(isF){ got=last; try{ r.stop(); }catch(x){} setTimeout(fin,250); } };
