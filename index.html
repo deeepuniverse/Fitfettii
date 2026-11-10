@@ -3205,10 +3205,21 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     return {icon:"🏃",title:T("Kardiyo","Cardio"),text,fields,calc:v=>{ const e={a:v.a,m:v.m,v:v.v||0,i:0}; return v.m>0?`~${Math.round(carBurn(e)||0)} kcal ${T("yakılır","burned")}`:""; },
       commit:v=>{ const e={a:v.a,m:Math.round(v.m)}; if(v.a==="tm"){ e.v=v.v||5; e.i=0; } if(v.a==="bk") e.v=v.v||20; day().car.push(e); save(); render(); }}; }
   /* strength phrase parser: sets / reps / kg from units, "3x12", or bare numbers */
-  function parseStr(tok,text,first){
+  function parseStr(tok0,text,first){
+    // split glued tokens ("set12", "20kg", "3x12" stays) and re-tokenise from the raw text
+    const t2=String(text).replace(/(\d)\s*[x×]\s*(\d)/gi,"$1x$2").replace(/(\d)([^\d\s.,x])/gi,"$1 $2").replace(/([^\d\s.,])(\d)/g,"$1 $2");
+    const tok=norm(t2.replace(/(\d)x(\d)/gi,"$1 x $2")).split(" ").filter(Boolean);
     let sets=0,reps=0,kg=0; const bare=[]; const mx=String(text).match(/(\d+)\s*[x×]\s*(\d+)/i); if(mx){ sets=+mx[1]; reps=+mx[2]; }
-    for(let i=0;i<tok.length;i++){ const n=numAt(tok,i); if(!n) continue; const u=tok[n[1]]||""; let v=n[0]; if(tok[n[1]]==="buçuk") v+=.5;
-      if(/^(set|sets|sett)$/.test(u)) sets=v; else if(/^(tekrar|rep|reps|kez|defa)$/.test(u)) reps=v; else if(/^(kg|kilo|kilogram|kilos)$/.test(u)) kg=v; else if(/^(lb|lbs|pound|pounds|libre)$/.test(u)) kg=Math.round(v/2.20462*10)/10; else if(!mx) bare.push(v); i=n[1]-1; }
+    const U={s:/^(set|sets|sett|seri)$/,r:/^(tekrar|rep|reps|kez|defa)$/,w:/^(kg|kilo|kilogram|kilos|kilogramm?)$/,l:/^(lb|lbs|pound|pounds|libre)$/};
+    const L={s:/^(set|sets|sett|seri)$/,r:/^(tekrar|rep|reps|kez|defa)$/,w:/^(agirlik|ağırlık|ağırlığı|agirligi|weight|weights|yuk|yük|kilo|kg)$/,l:/^(lb|lbs|pound|pounds|libre)$/};
+    const used=new Set(); const put=(k,v)=>{ if(k==="s") sets=v; else if(k==="r") reps=v; else if(k==="w") kg=v; else if(k==="l") kg=Math.round(v/2.20462*10)/10; };
+    for(let i=0;i<tok.length;i++){ const n=numAt(tok,i); if(!n) continue; let v=n[0]; let end=n[1]; if(tok[end]==="buçuk"){ v+=.5; end++; }
+      const prev=i>0&&!used.has(i-1)?tok[i-1]:"", next=tok[end]||"";
+      let k=null,at=-1;
+      for(const key of ["s","r","w","l"]) if(prev&&L[key].test(prev)){ k=key; at=i-1; break; }
+      if(!k) for(const key of ["s","r","w","l"]) if(next&&U[key].test(next)){ k=key; at=end; break; }
+      if(k){ put(k,v); used.add(at); if(next&&U[k].test(next)) used.add(end); } else if(!mx) bare.push(v);
+      i=end-1; }
     if(first&&!mx){ if(sets&&!reps){ const b=bare.find(v=>v!==sets||bare.length>1); if(b&&b!==sets) reps=b; } else if(!sets&&!reps&&bare.length>=2){ sets=bare[0]; reps=bare[1]; } }
     return {s:sets,r:reps,w:kg,bare}; }
   function draftStrength(tok,text){
@@ -3221,6 +3232,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     return {icon:"🏋️",title:T("Spor","Strength"),text,fields,absorb:(t,cur)=>{ const P=parseStr(norm(t).split(" ").filter(Boolean),t,false),o={}; if(P.s) o.s=P.s; if(P.r) o.r=P.r; if(P.w) o.w=P.w; const B=P.bare.slice(); if(B.length&&!(cur in o)){ if(cur==="s"&&B.length>=2&&!o.r){ o.s=B[0]; o.r=B[1]; if(B[2]&&!o.w) o.w=B[2]; } else o[cur]=B[0]; } return o; },calc:v=>{ const e={a:"ex",x:v.x,s:v.s,r:v.r}; if(v.w>0) e.w=v.w; return (v.s>0&&v.r>0)?`~${Math.round(strBurn(e))} kcal ${T("yakılır","burned")}`:""; },
       commit:v=>{ const e={a:"ex",x:v.x,s:Math.round(v.s),r:Math.round(v.r)}; if(v.w>0) e.w=Math.round(v.w*100)/100; day().str.push(e); save(); render(); }}; }
   function draftWeight(tok,text){
+    if(/(^| )(set|sets|sett|tekrar|rep|reps|kez|defa|seri)( |$)/.test(tok.join(" "))||exMatch(tok.filter(w=>w.length>=3))) return null; // spor cümlesi, vücut kilosu değil
     if(!tok.some(t=>/^(kilom|kilomu|tartı\w*|ağırlığ\w*|weigh\w*|weight)$/.test(t))&&!/(kilo\w* (oldum|geldim)|ağırlığım)/.test(tok.join(" "))) return null;
     const n=numIn(tok); const j=tok.join(" "), lbSaid=/(^| )(lb|lbs|pound|pounds|libre)( |$)/.test(j), kgSaid=/(kilo|(^| )kg( |$))/.test(j), isLb=lbSaid||(!kgSaid&&wU()==="lb");
     let v=n?n[0]:0; if(!(v>20&&v<400)) v=0;
