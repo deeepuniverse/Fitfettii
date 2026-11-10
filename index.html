@@ -749,6 +749,10 @@ body.listening .vcmd .vm{animation:vcb .7s ease-in-out infinite alternate}
 .vf-f.lis input{animation:vcl 1s ease-in-out infinite}
 @keyframes vcl{0%,100%{box-shadow:0 0 0 0 rgba(255,106,31,.6)}50%{box-shadow:0 0 0 8px rgba(255,106,31,0)}}
 @media (prefers-reduced-motion:reduce){body.listening .vcmd .vm,body.listening .vcmd .vm::before,body.listening .vcmd .vm::after,.vf-wave i,.vf-f.lis input{animation:none}body.listening .vcmd .vm::before{opacity:.6}}
+.vf-qrow{margin:10px 0 4px}.vf-qh{margin:0 0 8px;font-weight:700}
+.vf-chips{display:flex;flex-wrap:wrap;gap:8px}
+.vf-chips button{min-width:56px;min-height:56px;padding:0 14px;font:800 1.3rem var(--f-num);border-radius:14px;border:2px solid var(--kcal);background:rgba(255,106,31,.14);color:inherit}
+.vf-chips .vf-mic{font:700 1.05rem var(--f-body);background:var(--kcal);color:#111;border-color:var(--kcal)}
 </style>
 </head>
 <body>
@@ -3138,15 +3142,31 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     b.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",()=>{ const f=d.fields[+el.dataset.i]; f.value=el.value; refresh(); }));
     refresh();
     // eksik alanları sırayla sor: soru yazılı + sesli, cevap alanın içine yazılır
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
     for(const f of d.fields.filter(f=>!f.opt&&!f.sel)){
       if(my!==vfTok) return; if(parseFloat(String(f.value).replace(",","."))>0) continue;
       const lab=b.querySelector(`.vf-f[data-i="${d.fields.indexOf(f)}"]`); const inp=lab.querySelector("input"); lab.classList.add("ask"); inp.focus({preventScroll:true});
+      // answer by tapping a number, typing, or tapping the mic (iPhone only allows starting the mic from a tap)
+      const un=String(f.unit||"");
+      const CH=/tane|pcs/i.test(un)?[1,2,3,4,5,6]:/bardak|glass/i.test(un)?[1,2,3,4]:/^g$/i.test(un)?[50,100,150,200,250]:/^ml$/i.test(un)?[100,250,500]:/^(dk|min)$/i.test(un)?[10,20,30,45,60]:[];
+      const old=b.querySelector("#vf-qrow"); if(old) old.remove();
+      const row=document.createElement("div"); row.id="vf-qrow"; row.className="vf-qrow";
+      row.innerHTML=`<p class="vf-qh">${e2(f.q)}</p><div class="vf-chips">${CH.map(n=>`<button type="button" data-n="${n}">${n}</button>`).join("")}<button type="button" class="vf-mic">🎤 ${T("Konuş","Speak")}</button></div>`;
+      b.querySelector(".vf-grid").after(row);
+      let answered; const got=new Promise(r=>{ answered=r; });
+      const setVal=v=>{ f.value=String(v); inp.value=f.value; answered(true); };
+      row.querySelectorAll("[data-n]").forEach(x=>x.onclick=()=>setVal(+x.dataset.n));
+      inp.addEventListener("change",()=>{ if(parseFloat(String(inp.value).replace(",","."))>0){ f.value=inp.value; answered(true); } });
+      const speak=async()=>{ lab.classList.add("lis"); const t=await hear(); lab.classList.remove("lis"); if(my!==vfTok) return; const n=numIn(norm(t).split(" ")); if(n) setVal(n[0]); else { const h=row.querySelector(".vf-qh"); if(h) h.textContent=T("Anlayamadım. Bir sayıya dokun ya da tekrar 🎤","Didn't catch that. Tap a number or 🎤 again"); } };
+      row.querySelector(".vf-mic").onclick=speak;
       await new Promise(r=>say(f.q,r)); if(my!==vfTok) return;
-      lab.classList.add("lis"); const t=await hear(); lab.classList.remove("lis"); if(my!==vfTok) return; lab.classList.remove("ask");
-      const n=numIn(norm(t).split(" ")); if(!n){ inp.placeholder=T("Dokunup yaz","Tap and type"); return; }
-      f.value=String(n[0]); inp.value=f.value; lab.classList.add("flash"); refresh();
+      if(!isIOS) speak();
+      await Promise.race([got,new Promise(r=>{ const iv=setInterval(()=>{ if(my!==vfTok){ clearInterval(iv); r(false); } },400); got.then(()=>clearInterval(iv)); })]);
+      if(my!==vfTok) return; try{ rec&&rec.abort(); }catch(e){}
+      lab.classList.remove("ask","lis"); row.remove(); lab.classList.add("flash"); refresh();
     }
     if(my!==vfTok||missing().length) return;
+    if(isIOS) return;
     await new Promise(r=>say(d.title+". "+(d.calc?d.calc(val()):"")+". "+T("Ekleyeyim mi?","Shall I add it?"),r)); if(my!==vfTok) return;
     const t=await hear(); if(my!==vfTok) return; if(yes(t)) commit(); else if(no(t)) vfClose(); }
   function draftCardio(tok,text){
