@@ -3102,7 +3102,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     const iv=setInterval(()=>{ if(my!==s.gen){ clearInterval(iv); res(""); return; }
       if(s.words.length<s.used) s.used=s.words.length; const nw=s.words.slice(s.used).join(" ");
       if(nw){ const el=document.querySelector("#vfill .vf-say"); if(el) el.textContent="“"+nw+"”"; }
-      if((nw&&Date.now()-s.last>1300)||!s.alive||Date.now()-t0>maxMs){ clearInterval(iv); document.body.classList.remove("listening"); s.used=s.words.length; res(nw); } },200); });
+      if((nw&&Date.now()-s.last>2000)||!s.alive||Date.now()-t0>maxMs){ clearInterval(iv); document.body.classList.remove("listening"); s.used=s.words.length; res(nw); } },200); });
   const hear=()=>(IOS_&&sessAlive())?hearSess(20000):hearOne();
   const yes=t=>/(^|\s)(evet|tamam|ekle|olur|doğru|kaydet|yes|yeah|ok|okay|add|sure|correct)(\s|$)/.test(norm(t));
   const no=t=>/(^|\s)(hayır|yok|iptal|vazgeç|olmaz|yanlış|no|cancel|stop|wrong)(\s|$)/.test(norm(t));
@@ -3164,21 +3164,21 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     refresh();
     // eksik alanları sırayla sor: soru yazılı + sesli, cevap alanın içine yazılır
     const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-    for(const f of d.fields.filter(f=>!f.opt&&!f.sel)){
+    for(const f of d.fields.filter(f=>(!f.opt&&!f.sel)||f.askOpt)){
       if(my!==vfTok) return; if(parseFloat(String(f.value).replace(",","."))>0) continue;
       const lab=b.querySelector(`.vf-f[data-i="${d.fields.indexOf(f)}"]`); const inp=lab.querySelector("input"); lab.classList.add("ask"); inp.focus({preventScroll:true});
       // answer by tapping a number, typing, or tapping the mic (iPhone only allows starting the mic from a tap)
       const un=String(f.unit||"");
-      const CH=/tane|pcs/i.test(un)?[1,2,3,4,5,6]:/bardak|glass/i.test(un)?[1,2,3,4]:/^g$/i.test(un)?[50,100,150,200,250]:/^ml$/i.test(un)?[100,250,500]:/^(dk|min)$/i.test(un)?[10,20,30,45,60]:[];
+      const CH=/tane|pcs/i.test(un)?[1,2,3,4,5,6]:/bardak|glass/i.test(un)?[1,2,3,4]:/^g$/i.test(un)?[50,100,150,200,250]:/^ml$/i.test(un)?[100,250,500]:/^(dk|min)$/i.test(un)?[10,20,30,45,60]:/^kg$/i.test(un)?[10,20,30,40,50,60]:[];
       const old=b.querySelector("#vf-qrow"); if(old) old.remove();
       const row=document.createElement("div"); row.id="vf-qrow"; row.className="vf-qrow";
-      row.innerHTML=`<p class="vf-qh">${e2(f.q)}</p><div class="vf-chips">${CH.map(n=>`<button type="button" data-n="${n}">${n}</button>`).join("")}<button type="button" class="vf-mic">🎤 ${T("Konuş","Speak")}</button></div>`;
+      row.innerHTML=`<p class="vf-qh">${e2(f.q)}</p><div class="vf-chips">${CH.map(n=>`<button type="button" data-n="${n}">${n}</button>`).join("")}${f.askOpt?`<button type="button" data-n="0">${T("Yok","None")}</button>`:""}<button type="button" class="vf-mic">🎤 ${T("Konuş","Speak")}</button></div>`;
       b.querySelector(".vf-grid").after(row);
       let answered; const got=new Promise(r=>{ answered=r; });
-      const setVal=v=>{ f.value=String(v); inp.value=f.value; answered(true); };
+      const setVal=v=>{ f.value=v>0?String(v):""; inp.value=f.value; answered(true); };
       row.querySelectorAll("[data-n]").forEach(x=>x.onclick=()=>setVal(+x.dataset.n));
       inp.addEventListener("change",()=>{ if(parseFloat(String(inp.value).replace(",","."))>0){ f.value=inp.value; answered(true); } });
-      const speak=async()=>{ lab.classList.add("lis"); const t=await hear(); lab.classList.remove("lis"); if(my!==vfTok) return; const n=numIn(norm(t).split(" ")); if(n) setVal(n[0]); else { const h=row.querySelector(".vf-qh"); if(h) h.textContent=T("Anlayamadım. Bir sayıya dokun ya da tekrar 🎤","Didn't catch that. Tap a number or 🎤 again"); } };
+      const speak=async()=>{ lab.classList.add("lis"); const t=await hear(); lab.classList.remove("lis"); if(my!==vfTok) return; const n=numIn(norm(t).split(" ")); if(n) setVal(n[0]); else if(f.askOpt&&/(^|\s)(yok|ağırlıksız|none|no|skip|geç|bodyweight)(\s|$)/.test(norm(t))) setVal(0); else { const h=row.querySelector(".vf-qh"); if(h) h.textContent=T("Anlayamadım. Bir sayıya dokun ya da tekrar 🎤","Didn't catch that. Tap a number or 🎤 again"); } };
       row.querySelector(".vf-mic").onclick=speak;
       await new Promise(r=>say(f.q,r)); if(my!==vfTok) return;
       if(!isIOS||sessAlive()) speak();
@@ -3200,13 +3200,14 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
       commit:v=>{ const e={a:v.a,m:Math.round(v.m)}; if(v.a==="tm"){ e.v=v.v||5; e.i=0; } if(v.a==="bk") e.v=v.v||20; day().car.push(e); save(); render(); }}; }
   function draftStrength(tok,text){
     const key=exMatch(tok.filter(w=>w.length>=3)); if(!key) return null;
-    let sets=0,reps=0,kg=0;
+    let sets=0,reps=0,kg=0; const bare=[]; const mx=String(text).match(/(\d+)\s*[x×]\s*(\d+)/i); if(mx){ sets=+mx[1]; reps=+mx[2]; }
     for(let i=0;i<tok.length;i++){ const n=numAt(tok,i); if(!n) continue; const u=tok[n[1]]||""; let v=n[0]; if(tok[n[1]]==="buçuk") v+=.5;
-      if(/^(set|sets|sett)$/.test(u)) sets=v; else if(/^(tekrar|rep|reps|kez|defa)$/.test(u)) reps=v; else if(/^(kg|kilo|kilogram|kilos)$/.test(u)) kg=v; else if(/^(lb|lbs|pound|pounds|libre)$/.test(u)) kg=Math.round(v/2.20462*10)/10; i=n[1]-1; }
+      if(/^(set|sets|sett)$/.test(u)) sets=v; else if(/^(tekrar|rep|reps|kez|defa)$/.test(u)) reps=v; else if(/^(kg|kilo|kilogram|kilos)$/.test(u)) kg=v; else if(/^(lb|lbs|pound|pounds|libre)$/.test(u)) kg=Math.round(v/2.20462*10)/10; else if(!mx) bare.push(v); i=n[1]-1; }
+    if(!mx){ if(sets&&!reps){ const b=bare.find(v=>v!==sets||bare.length>1); if(b&&b!==sets) reps=b; } else if(!sets&&!reps&&bare.length>=2){ sets=bare[0]; reps=bare[1]; } }
     const fields=[{key:"x",label:T("Hareket","Exercise"),sel:Object.keys(EXS).map(k=>[k,N(EXS[k])]),value:key},
       {key:"s",label:T("Set","Sets"),unit:T("set","sets"),value:sets?String(sets):"",q:T("Kaç set?","How many sets?")},
       {key:"r",label:T("Tekrar","Reps"),unit:T("tekrar","reps"),value:reps?String(reps):"",q:T("Her sette kaç tekrar?","How many reps per set?")},
-      {key:"w",label:T("Ağırlık","Weight"),unit:"kg",value:kg?String(kg):"",opt:true}];
+      {key:"w",label:T("Ağırlık","Weight"),unit:"kg",value:kg?String(kg):"",opt:true,askOpt:true,q:T("Kaç kilo ile? Ağırlıksızsa “yok” de.","How many kg? Say “none” if bodyweight.")}];
     return {icon:"🏋️",title:T("Spor","Strength"),text,fields,calc:v=>{ const e={a:"ex",x:v.x,s:v.s,r:v.r}; if(v.w>0) e.w=v.w; return (v.s>0&&v.r>0)?`~${Math.round(strBurn(e))} kcal ${T("yakılır","burned")}`:""; },
       commit:v=>{ const e={a:"ex",x:v.x,s:Math.round(v.s),r:Math.round(v.r)}; if(v.w>0) e.w=Math.round(v.w*100)/100; day().str.push(e); save(); render(); }}; }
   function draftWeight(tok,text){
