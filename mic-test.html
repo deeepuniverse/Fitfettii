@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fitfetti mikrofon testi</title>
+<style>
+body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:18px;background:#111;color:#f4f4f4;line-height:1.45}
+h1{font-size:1.3rem;margin:0 0 6px} p{margin:6px 0 14px;color:#cfcfcf}
+button{display:block;width:100%;font-size:1.1rem;padding:16px;margin:10px 0;border:0;border-radius:14px;background:#ff7a1a;color:#111;font-weight:700}
+button.b2{background:#2a2a2a;color:#fff}
+#log{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,monospace;background:#1b1b1b;border-radius:12px;padding:12px;min-height:160px}
+.ok{color:#7ee787}.bad{color:#ff7b72}
+</style></head><body>
+<h1>Mikrofon testi</h1>
+<p>Bu sayfayı <b>Safari'de</b> aç. Önce 1. düğmeye, sonra 2. düğmeye bas. Ekrandaki yazıların hepsinin ekran görüntüsünü gönder.</p>
+<button id="b1">1) Mikrofon iznini dene</button>
+<button id="b2" class="b2">2) Konuşma tanımayı dene (konuş: "iki yumurta")</button>
+<div id="log"></div>
+<script>
+const L=document.getElementById('log');
+const t0=Date.now();
+function log(m,c){ const s=document.createElement('div'); if(c) s.className=c; s.textContent=((Date.now()-t0)/1000).toFixed(1)+'s  '+m; L.appendChild(s); }
+log('Tarayıcı: '+navigator.userAgent.slice(0,110));
+log('Adres: '+location.protocol+'//'+location.host);
+log('Konuşma tanıma var mı: '+((window.SpeechRecognition||window.webkitSpeechRecognition)?'EVET':'HAYIR'), (window.SpeechRecognition||window.webkitSpeechRecognition)?'ok':'bad');
+log('Ana sayfada gömülü mü: '+(window.self!==window.top?'EVET (sorun olabilir)':'hayır'));
+document.getElementById('b1').onclick=async()=>{
+  log('mikrofon izni isteniyor…');
+  try{ const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    log('MİKROFON İZNİ TAMAM ('+s.getAudioTracks().length+' kanal)','ok'); s.getTracks().forEach(x=>x.stop());
+  }catch(e){ log('MİKROFON HATASI: '+e.name+' - '+e.message,'bad'); }
+};
+document.getElementById('b2').onclick=()=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ log('Bu tarayıcıda konuşma tanıma yok','bad'); return; }
+  const r=new SR(); r.lang='tr-TR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
+  ['start','audiostart','soundstart','speechstart','speechend','soundend','audioend','nomatch','end'].forEach(n=>r['on'+n]=()=>log('olay: '+n));
+  r.onresult=e=>{ let x=''; for(let i=e.resultIndex;i<e.results.length;i++) x+=e.results[i][0].transcript; log('DUYDUM: "'+x+'"','ok'); };
+  r.onerror=e=>log('HATA: '+e.error+(e.message?' - '+e.message:''),'bad');
+  try{ r.start(); log('start() çağrıldı, şimdi konuş…'); }catch(e){ log('start hatası: '+e.message,'bad'); }
+  setTimeout(()=>{ try{ r.stop(); log('10 sn doldu, durduruldu'); }catch(e){} },10000);
+};
+</script></body></html>
