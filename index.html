@@ -3074,7 +3074,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     if(c==="audio-capture") return T("Mikrofon bulunamadı ya da başka bir uygulama kullanıyor.","No microphone found, or another app is using it.");
     if(c==="no-speech"||!c) return T("Ses duyamadım. Mikrofona yakın konuşup tekrar dene.","I didn't hear anything. Speak closer to the microphone and try again.");
     return T("Mikrofon hatası: ","Microphone error: ")+c; };
-  const hear=()=>new Promise(res=>{ if(!SR){ res(""); return; } try{ rec&&rec.abort(); }catch(e){}
+  const hearOne=()=>new Promise(res=>{ if(!SR){ res(""); return; } try{ rec&&rec.abort(); }catch(e){}
     const r=new SR(); r.lang=tr()?"tr-TR":"en-US"; r.interimResults=true; r.maxAlternatives=1; r.continuous=false; let got="",last="",done=false,t0=Date.now(); micErr=""; micInfo=""; micLog="";
     const fin=()=>{ if(done) return; done=true; clearTimeout(tm); document.body.classList.remove("listening"); micInfo=`${micErr||"-"}/${Date.now()-t0}ms`; res(got||last); };
     try{ window.speechSynthesis&&speechSynthesis.cancel(); }catch(e){}
@@ -3086,6 +3086,24 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     ["start","audiostart","soundstart","speechstart","speechend","soundend","audioend","nomatch","end"].forEach(n=>r.addEventListener(n,()=>{ micLog+=n+"@"+(Date.now()-t0)+" "; }));
     const tm=setTimeout(()=>{ try{ r.stop(); }catch(x){} setTimeout(fin,600); },12000);
     rec=r; try{ r.start(); }catch(e){ micErr="start-failed"; fin(); } });
+  /* iPhone: only the first recognition session after a page load works, so one long session is started by the tap and reused for every answer */
+  let sess=null;
+  const sessAlive=()=>!!(sess&&sess.alive);
+  function sessStart(){ if(!SR) return false; if(sessAlive()) return true; try{ rec&&rec.abort(); }catch(e){}
+    const r=new SR(); r.lang=tr()?"tr-TR":"en-US"; r.interimResults=true; r.maxAlternatives=1; r.continuous=true;
+    const s={r,words:[],used:0,last:0,alive:true,gen:0,idle:null,t0:Date.now()}; micErr=""; micInfo=""; micLog="";
+    r.onresult=e=>{ let full=""; for(let i=0;i<e.results.length;i++) full+=" "+e.results[i][0].transcript; s.words=full.trim().split(/\s+/).filter(Boolean); s.last=Date.now(); };
+    r.onerror=e=>{ micErr=e&&e.error||"error"; };
+    r.onend=()=>{ s.alive=false; clearTimeout(s.idle); document.body.classList.remove("listening"); micInfo=`${micErr||"-"}/${Date.now()-s.t0}ms`; };
+    ["start","audiostart","soundstart","speechstart","speechend","soundend","audioend","nomatch","end"].forEach(n=>r.addEventListener(n,()=>{ micLog+=n+"@"+(Date.now()-s.t0)+" "; }));
+    s.bump=()=>{ clearTimeout(s.idle); s.idle=setTimeout(()=>{ try{ r.stop(); }catch(x){} },180000); };
+    sess=s; try{ r.start(); }catch(e){ micErr="start-failed"; s.alive=false; return false; } s.bump(); return true; }
+  const hearSess=maxMs=>new Promise(res=>{ const s=sess, my=++s.gen, t0=Date.now(); document.body.classList.add("listening"); s.bump(); if(s.words.length<s.used) s.used=s.words.length;
+    const iv=setInterval(()=>{ if(my!==s.gen){ clearInterval(iv); res(""); return; }
+      if(s.words.length<s.used) s.used=s.words.length; const nw=s.words.slice(s.used).join(" ");
+      if(nw){ const el=document.querySelector("#vfill .vf-say"); if(el) el.textContent="“"+nw+"”"; }
+      if((nw&&Date.now()-s.last>1300)||!s.alive||Date.now()-t0>maxMs){ clearInterval(iv); document.body.classList.remove("listening"); s.used=s.words.length; res(nw); } },200); });
+  const hear=()=>(IOS_&&sessAlive())?hearSess(20000):hearOne();
   const yes=t=>/(^|\s)(evet|tamam|ekle|olur|doğru|kaydet|yes|yeah|ok|okay|add|sure|correct)(\s|$)/.test(norm(t));
   const no=t=>/(^|\s)(hayır|yok|iptal|vazgeç|olmaz|yanlış|no|cancel|stop|wrong)(\s|$)/.test(norm(t));
   const numIn=tok=>{ for(let i=0;i<tok.length;i++){ const n=numAt(tok,i); if(n){ let v=n[0]; if(tok[n[1]]==="buçuk"||tok[n[1]]==="and a half") v+=.5; return [v,n[1],i]; } } return null; };
@@ -3163,13 +3181,14 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
       const speak=async()=>{ lab.classList.add("lis"); const t=await hear(); lab.classList.remove("lis"); if(my!==vfTok) return; const n=numIn(norm(t).split(" ")); if(n) setVal(n[0]); else { const h=row.querySelector(".vf-qh"); if(h) h.textContent=T("Anlayamadım. Bir sayıya dokun ya da tekrar 🎤","Didn't catch that. Tap a number or 🎤 again"); } };
       row.querySelector(".vf-mic").onclick=speak;
       await new Promise(r=>say(f.q,r)); if(my!==vfTok) return;
-      if(!isIOS) speak();
+      if(!isIOS||sessAlive()) speak();
       await Promise.race([got,new Promise(r=>{ const iv=setInterval(()=>{ if(my!==vfTok){ clearInterval(iv); r(false); } },400); got.then(()=>clearInterval(iv)); })]);
       if(my!==vfTok) return; try{ rec&&rec.abort(); }catch(e){}
       lab.classList.remove("ask","lis"); row.remove(); lab.classList.add("flash"); refresh();
     }
     if(my!==vfTok||missing().length) return;
-    if(isIOS) return;
+    if(isIOS&&!sessAlive()) return;
+    if(isIOS){ const c=b.querySelector("#vf-calc"); if(c) c.textContent=(c.textContent+" — ").replace(/^ — $/,"")+T("“evet” de ya da Ekle'ye dokun","say “yes” or tap Add"); }
     await new Promise(r=>say(d.title+". "+(d.calc?d.calc(val()):"")+". "+T("Ekleyeyim mi?","Shall I add it?"),r)); if(my!==vfTok) return;
     const t=await hear(); if(my!==vfTok) return; if(yes(t)) commit(); else if(no(t)) vfClose(); }
   function draftCardio(tok,text){
@@ -3230,6 +3249,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   }
   async function cmd(){
     if(!SR){ msg(inFrame? T("Bu önizleme penceresi sesli girişi desteklemiyor. Uygulamayı tarayıcıda kendi adresinde aç.","This preview doesn't support voice input. Open the app on its own address in the browser.") : T("Bu tarayıcı sesli komutu desteklemiyor. Chrome veya Safari'nin güncel sürümünü dene.","This browser doesn't support voice input. Try a recent Chrome or Safari.")); return; }
+    if(IOS_&&!sessAlive()) sessStart();
     vfListening(); const my=vfTok; const t=await hear(); if(my!==vfTok) return;
     if(!t){ vfClose(); typeBox(micMsg(),"["+(micInfo||micErr||"-")+"] "+micLog); return; }
     handle(t); }
