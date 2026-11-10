@@ -3257,11 +3257,41 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     if(d.food.length){ l="food"; const e=d.food[d.food.length-1]; nm=e.f==="water"?T("Su","Water"):nameOf(e.f); } else if(d.str.length){ l="str"; nm=strName(d.str[d.str.length-1]); } else if(d.car.length){ l="car"; nm=carName(d.car[d.car.length-1]); }
     if(!l){ msg(T("Silinecek kayıt yok.","Nothing to delete.")); return true; }
     confirmCard("🗑️",T("Son kayıt silinsin mi?","Delete the last entry?"),[nm],()=>{ const e=d[l].pop(); if(l==="food"&&e&&e.ph){ try{ dropPhoto(e.ph); }catch(x){} } save(); render(); say(T("Silindi.","Deleted.")); }); return true; }
-  async function handle(text){
+  /* anlaşılmayan ama sayı içeren cümle: ne olduğunu sor (hareket / yemek / aktivite / belirsiz), cevabı eski cümleyle birleştir */
+  function clarifyAsk(kind,text,depth){
+    const my=++vfTok; const b=vf(); b.hidden=false; b.className="vfill on";
+    const Q={ex:[T("Hangi hareket? (ör. bench press, squat)","Which exercise? (e.g. bench press, squat)"),["Bench press","Squat","Deadlift",T("Şınav","Push-up")]],
+      car:[T("Hangi aktivite?","Which activity?"),[T("Koşu","Running"),T("Yürüyüş","Walking"),T("Bisiklet","Cycling"),T("Yüzme","Swimming")]],
+      food:[T("Ne yedin ya da içtin?","What did you eat or drink?"),[]],
+      amb:[T("Bu ne? Yemek mi, kilon mu, spor ağırlığı mı?","What is this? Food, your weight, or a gym weight?"),[T("Yemek","Food"),T("Kilom","My weight"),T("Spor","Workout")]]}[kind];
+    b.innerHTML=`<div class="vf-h"><b>❓ ${e2(Q[0])}</b><button type="button" class="vf-x" aria-label="${T("Kapat","Close")}">✕</button></div><p class="vf-say">“${e2(text)}”</p><div class="vf-chips">${Q[1].map(c=>`<button type="button" data-c="${e2(c)}">${e2(c)}</button>`).join("")}<button type="button" class="vf-mic">🎤 ${T("Konuş","Speak")}</button></div>`;
+    b.scrollIntoView({behavior:"smooth",block:"center"}); b.querySelector(".vf-x").onclick=vfClose;
+    const tok=norm(text).split(" ").filter(Boolean), nn=numIn(tok), num=nn?nn[0]:0;
+    const resolve=ans=>{ if(my!==vfTok) return; const a=norm(ans);
+      if(kind==="amb"){
+        if(/(^| )(yemek|food|yedim|ictim|eat|drink)( |$)/.test(a)) return clarifyAsk("food",text,depth);
+        if(/(^| )(kilo|kilom|weight|vucut|body|tarti|agirlik)( |$)/.test(a)) return handle("kilom "+num,depth+1);
+        if(/(^| )(spor|workout|gym|hareket|exercise|antrenman)( |$)/.test(a)) return clarifyAsk("ex",text,depth);
+      }
+      if(kind==="food"&&!/(gram|gr|ml|bardak|glass|dilim|slice|adet|tane|litre|liter|cup)/.test(norm(text))) return handle(num+" gram "+ans,depth+1);
+      return handle(text+" "+ans,depth+1); };
+    b.querySelectorAll("[data-c]").forEach(x=>x.onclick=()=>resolve(x.dataset.c));
+    const speak=async(tries=0)=>{ b.querySelector(".vf-mic").classList.add("rec"); const t=await hear(); const m=b.querySelector(".vf-mic"); if(m) m.classList.remove("rec"); if(my!==vfTok) return; if(t) resolve(t); else if(sessAlive()&&tries<1) speak(tries+1); };
+    b.querySelector(".vf-mic").onclick=()=>speak(0);
+    if(!IOS_||sessAlive()) speak(0); }
+  function clarify(text,tok,depth){
+    if(depth>=2) return false; const j=tok.join(" "); if(!(/\d/.test(j)||tok.some((t,i)=>numAt(tok,i)))) return false;
+    let kind;
+    if(/(^| )(set|sets|sett|tekrar|rep|reps|kez|defa)( |$)/.test(j)||/\d\s*[x×]\s*\d/.test(text)) kind="ex";
+    else if(/(^| )(dakika|dk|min|minute|minutes|saat|hour|hours|hr)( |$)/.test(j)) kind="car";
+    else if(/(^| )(gram|gr|g|grams|ml|bardak|glass|glasses|dilim|slice|slices|adet|tane|piece|pieces|litre|liter|cup|cups)( |$)/.test(j)) kind="food";
+    else kind="amb";
+    clarifyAsk(kind,text,depth); return true; }
+  async function handle(text,depth=0){
     const tok=norm(text).split(" ").filter(Boolean);
     if(doDelete(tok)||doSummary(tok)||doDay(tok)){ vfClose(); return; }
     const d=draftWeight(tok,text)||draftCardio(tok,text)||draftStrength(tok,text)||draftFood(text);
-    if(!d){ vfClose(); msg(T("Anlayamadım: “","I didn't understand: “")+e2(text)+T("”. Tekrar dene.","”. Try again.")); return; }
+    if(!d){ if(clarify(text,tok,depth)) return; vfClose(); msg(T("Anlayamadım: “","I didn't understand: “")+e2(text)+T("”. Tekrar dene.","”. Try again.")); return; }
     vfRun(d);
   }
   async function cmd(){
