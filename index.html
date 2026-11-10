@@ -1612,7 +1612,7 @@ function pwVals(e){ const d=pwDefE(e); if(!d) return [0,0,"—"];
   let k=d[2]*e.g/100, p=d[3]*e.g/100; const m=e.mx&&mixDef(e.mx); if(m&&e.ml>0){ k+=m[2]*e.ml/100; p+=m[3]*e.ml/100; }
   return [k,p,N(d)]; }
 const foodVals=e=> isPw(e.f) ? pwVals(e) : e.f==="once" ? [(+e.k100||0)*e.g/100,(+e.p100||0)*e.g/100,e.n||"—"] : e.f==="custom" ? [e.k||0,e.p||0,e.n||"—"] : (getFood(e.f)?[getFood(e.f)[2]*e.g/100, getFood(e.f)[3]*e.g/100, N(getFood(e.f))]:[0,0,"—"]);
-const burn=(met,min)=> met*(+S.goals.cw||0)*min/60;
+const burn=(met,min)=> met*(+S.goals.cw||70)*min/60;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 function fillSelects(){
@@ -2985,7 +2985,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
       const names=[def[0],def[1]].map(n=>norm(String(n||"").replace(/\(.*?\)/g," ")).split(" ").filter(w=>w.length>=2));
       let sc=0;
       for(const nt of names) for(const n of nt){ for(const w of words){
-        if(w===n||w===n+"s"||w===n+"es") sc+=n.length+2; else if(n.length>=4&&w.length>=4&&(w.startsWith(n.slice(0,Math.max(4,n.length-2)))||(n.length-w.length<=2&&n.startsWith(w.slice(0,Math.max(4,w.length-2)))))) sc+=n.length; } }
+        if(w===n||w===n+"s"||w===n+"es") sc+=n.length+4; else if(n.length>=4&&w.length>=4&&(w.startsWith(n.slice(0,Math.max(4,n.length-2)))||(n.length-w.length<=2&&n.startsWith(w.slice(0,Math.max(4,w.length-2)))))) sc+=n.length; } }
       sc-=0.01*Math.max(names[0].length,names[1].length);
       if(sc>bs){ bs=sc; best=k; } }
     return bs>=3?best:null;
@@ -3136,9 +3136,9 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
       ov.querySelector("#vq-mic").onclick=listenNum; if(!SR) ov.querySelector("#vq-mic").hidden=true;
       say(q,()=>{ if(!dead) listenNum(); }); });
   }
-  const exMatch=words=>{ let best=null,bs=0; for(const k of Object.keys(EXS)){ const nm=[EXS[k][0],EXS[k][1]].map(n=>norm(String(n||"").replace(/\(.*?\)/g," ")).split(" ").filter(w=>w.length>=3)); let sc=0;
+  const exMatch=words=>{ words=words.map(w=>{ const m=w.match(/^(push|pull|sit|chin)-?ups?$/); return m?norm({push:"şınav",pull:"barfiks",sit:"mekik",chin:"chin"}[m[1]]):w; }); let best=null,bs=0; for(const k of Object.keys(EXS)){ const nm=[EXS[k][0],EXS[k][1]].map(n=>norm(String(n||"").replace(/\(.*?\)/g," ")).split(" ").filter(w=>w.length>=3)); let sc=0;
       for(const nt of nm) for(const n of nt) for(const w of words){ if(w===n) sc+=n.length+2; else if(n.length>=5&&w.length>=5&&w.slice(0,5)===n.slice(0,5)) sc+=n.length; } if(sc>bs){ bs=sc; best=k; } } return bs>=5?best:null; };
-  const CAR_WORDS=[[/^(koşu|koş\w*|koştum|run\w*|jog\w*)$/,"tm",9],[/^(yürüyüş|yürü\w*|yürüdüm|walk\w*)$/,"tm",5],[/^(bisiklet\w*|bike|biking|cycl\w*)$/,"bk",20],[/^(yüz\w*|swim\w*)$/,"swim"],[/^(kürek|row\w*)$/,"row"],[/^(eliptik|elliptical)$/,"ell"],[/^(ip|rope|jump)$/,"rope"],[/^hiit$/,"hiit"]];
+  const CAR_WORDS=[[/^(koşu|koş\w*|koştum|run\w*|jog\w*)$/,"tm",9],[/^(yürüyüş|yürü\w*|yürüdüm|walk\w*)$/,"tm",5],[/^(bisiklet\w*|bike|biking|cycl\w*)$/,"bk",20],[/^(yüzme\w*|yüzdüm|yüzüyor\w*|swim\w*)$/,"swim"],[/^(kürek|row\w*)$/,"row"],[/^(eliptik|elliptical)$/,"ell"],[/^(ip|rope|jump)$/,"rope"],[/^hiit$/,"hiit"]];
   /* ---- doldurma satırı: anlaşılan bilgiler ana ekranda, alan alan doldurulur ---- */
   let vfTok=0;
   const vf=()=>document.getElementById("vfill");
@@ -3178,8 +3178,14 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
       const setVal=v=>{ f.value=v>0?String(v):""; inp.value=f.value; answered(true); };
       row.querySelectorAll("[data-n]").forEach(x=>x.onclick=()=>setVal(+x.dataset.n));
       inp.addEventListener("change",()=>{ if(parseFloat(String(inp.value).replace(",","."))>0){ f.value=inp.value; answered(true); } });
-      const speak=async()=>{ lab.classList.add("lis"); const t=await hear(); lab.classList.remove("lis"); if(my!==vfTok) return; const n=numIn(norm(t).split(" ")); if(n) setVal(n[0]); else if(f.askOpt&&/(^|\s)(yok|ağırlıksız|none|no|skip|geç|bodyweight)(\s|$)/.test(norm(t))) setVal(0); else { const h=row.querySelector(".vf-qh"); if(h) h.textContent=T("Anlayamadım. Bir sayıya dokun ya da tekrar 🎤","Didn't catch that. Tap a number or 🎤 again"); } };
-      row.querySelector(".vf-mic").onclick=speak;
+      const NONE=/(^|\s)(yok|ağırlıksız|none|no|skip|geç|bodyweight)(\s|$)/;
+      const speak=async(tries=0)=>{ lab.classList.add("lis"); const t=await hear(); lab.classList.remove("lis"); if(my!==vfTok) return;
+        const ab=d.absorb?d.absorb(t,f.key):null; let ok=false;
+        if(ab&&Object.keys(ab).length){ d.fields.forEach(g=>{ if(g!==f&&ab[g.key]>0){ g.value=String(ab[g.key]); const gi=b.querySelector(`.vf-f[data-i="${d.fields.indexOf(g)}"] input`); if(gi) gi.value=g.value; } }); refresh(); if(ab[f.key]>0){ setVal(ab[f.key]); ok=true; } }
+        else { const n=numIn(norm(t).split(" ")); if(n){ setVal(n[0]); ok=true; } }
+        if(!ok&&f.askOpt&&NONE.test(norm(t))){ setVal(0); ok=true; }
+        if(!ok){ const h=row.querySelector(".vf-qh"); if(h) h.textContent=T("Anlayamadım. ","Didn't catch that. ")+f.q; if(sessAlive()&&tries<2&&my===vfTok) speak(tries+1); } };
+      row.querySelector(".vf-mic").onclick=()=>speak(0);
       await new Promise(r=>say(f.q,r)); if(my!==vfTok) return;
       if(!isIOS||sessAlive()) speak();
       await Promise.race([got,new Promise(r=>{ const iv=setInterval(()=>{ if(my!==vfTok){ clearInterval(iv); r(false); } },400); got.then(()=>clearInterval(iv)); })]);
@@ -3198,17 +3204,21 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     if(w[1]==="tm"||w[1]==="bk") fields.push({key:"v",label:T("Hız","Speed"),unit:"km/h",value:String(w[2]),opt:true});
     return {icon:"🏃",title:T("Kardiyo","Cardio"),text,fields,calc:v=>{ const e={a:v.a,m:v.m,v:v.v||0,i:0}; return v.m>0?`~${Math.round(carBurn(e)||0)} kcal ${T("yakılır","burned")}`:""; },
       commit:v=>{ const e={a:v.a,m:Math.round(v.m)}; if(v.a==="tm"){ e.v=v.v||5; e.i=0; } if(v.a==="bk") e.v=v.v||20; day().car.push(e); save(); render(); }}; }
-  function draftStrength(tok,text){
-    const key=exMatch(tok.filter(w=>w.length>=3)); if(!key) return null;
+  /* strength phrase parser: sets / reps / kg from units, "3x12", or bare numbers */
+  function parseStr(tok,text,first){
     let sets=0,reps=0,kg=0; const bare=[]; const mx=String(text).match(/(\d+)\s*[x×]\s*(\d+)/i); if(mx){ sets=+mx[1]; reps=+mx[2]; }
     for(let i=0;i<tok.length;i++){ const n=numAt(tok,i); if(!n) continue; const u=tok[n[1]]||""; let v=n[0]; if(tok[n[1]]==="buçuk") v+=.5;
       if(/^(set|sets|sett)$/.test(u)) sets=v; else if(/^(tekrar|rep|reps|kez|defa)$/.test(u)) reps=v; else if(/^(kg|kilo|kilogram|kilos)$/.test(u)) kg=v; else if(/^(lb|lbs|pound|pounds|libre)$/.test(u)) kg=Math.round(v/2.20462*10)/10; else if(!mx) bare.push(v); i=n[1]-1; }
-    if(!mx){ if(sets&&!reps){ const b=bare.find(v=>v!==sets||bare.length>1); if(b&&b!==sets) reps=b; } else if(!sets&&!reps&&bare.length>=2){ sets=bare[0]; reps=bare[1]; } }
+    if(first&&!mx){ if(sets&&!reps){ const b=bare.find(v=>v!==sets||bare.length>1); if(b&&b!==sets) reps=b; } else if(!sets&&!reps&&bare.length>=2){ sets=bare[0]; reps=bare[1]; } }
+    return {s:sets,r:reps,w:kg,bare}; }
+  function draftStrength(tok,text){
+    const key=exMatch(tok.filter(w=>w.length>=3)); if(!key) return null;
+    const P=parseStr(tok,text,true); let sets=P.s,reps=P.r,kg=P.w;
     const fields=[{key:"x",label:T("Hareket","Exercise"),sel:Object.keys(EXS).map(k=>[k,N(EXS[k])]),value:key},
       {key:"s",label:T("Set","Sets"),unit:T("set","sets"),value:sets?String(sets):"",q:T("Kaç set?","How many sets?")},
       {key:"r",label:T("Tekrar","Reps"),unit:T("tekrar","reps"),value:reps?String(reps):"",q:T("Her sette kaç tekrar?","How many reps per set?")},
       {key:"w",label:T("Ağırlık","Weight"),unit:"kg",value:kg?String(kg):"",opt:true,askOpt:true,q:T("Kaç kilo ile? Ağırlıksızsa “yok” de.","How many kg? Say “none” if bodyweight.")}];
-    return {icon:"🏋️",title:T("Spor","Strength"),text,fields,calc:v=>{ const e={a:"ex",x:v.x,s:v.s,r:v.r}; if(v.w>0) e.w=v.w; return (v.s>0&&v.r>0)?`~${Math.round(strBurn(e))} kcal ${T("yakılır","burned")}`:""; },
+    return {icon:"🏋️",title:T("Spor","Strength"),text,fields,absorb:(t,cur)=>{ const P=parseStr(norm(t).split(" ").filter(Boolean),t,false),o={}; if(P.s) o.s=P.s; if(P.r) o.r=P.r; if(P.w) o.w=P.w; const B=P.bare.slice(); if(B.length&&!(cur in o)){ if(cur==="s"&&B.length>=2&&!o.r){ o.s=B[0]; o.r=B[1]; if(B[2]&&!o.w) o.w=B[2]; } else o[cur]=B[0]; } return o; },calc:v=>{ const e={a:"ex",x:v.x,s:v.s,r:v.r}; if(v.w>0) e.w=v.w; return (v.s>0&&v.r>0)?`~${Math.round(strBurn(e))} kcal ${T("yakılır","burned")}`:""; },
       commit:v=>{ const e={a:"ex",x:v.x,s:Math.round(v.s),r:Math.round(v.r)}; if(v.w>0) e.w=Math.round(v.w*100)/100; day().str.push(e); save(); render(); }}; }
   function draftWeight(tok,text){
     if(!tok.some(t=>/^(kilom|kilomu|tartı\w*|ağırlığ\w*|weigh\w*|weight)$/.test(t))&&!/(kilo\w* (oldum|geldim)|ağırlığım)/.test(tok.join(" "))) return null;
@@ -3223,7 +3233,13 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
       if(it.ask){ value=""; if(per){ unit=T("tane","pcs"); factor=per; q=T(`Kaç tane ${nameOf(k)}?`,`How many ${nameOf(k)}?`); } else if(isDr){ unit=T("bardak","glass"); factor=250; q=T(`Kaç bardak ${nameOf(k)}?`,`How many glasses of ${nameOf(k)}?`); } }
       else if(isWater||isDr) unit="ml";
       return {key:"i"+i,label:nameOf(k)||k,unit,value:value===""?"":String(Math.round(value*10)/10),q,factor,k}; });
-    return {icon:"🍽️",title:T("Yemek","Food"),text,fields,calc:v=>{ let kc=0,p=0; fields.forEach(f=>{ const g=(v[f.key]||0)*f.factor, def=getFood(f.k); if(def){ kc+=(def[2]||0)*g/100; p+=(def[3]||0)*g/100; } }); return kc>0?`${Math.round(kc)} kcal · ${Math.round(p*10)/10} g ${T("protein","protein")}`:""; },
+    const absorb=(t,cur)=>{ const tok=norm(t).split(" ").filter(Boolean),nums=[]; for(let i=0;i<tok.length;i++){ const n=numAt(tok,i); if(n){ let v=n[0]; if(tok[n[1]]==="buçuk") v+=.5; nums.push([v,tok[n[1]]||""]); i=n[1]-1; } }
+      const o={}; let ci=fields.findIndex(f=>f.key===cur); if(ci<0) return o;
+      for(let ni=0;ni<nums.length&&ci<fields.length;ni++){ const f=fields[ci]; let [v,u]=nums[ni];
+        if(/^(g|ml)$/.test(f.unit)){ if(/^(bardak|glass|glasses|cup|cups)$/.test(u)) v*=250; else if(/^(litre|liter|l)$/.test(u)) v*=1000; else if(f.unit==="g"&&/^(kg|kilo|kilogram)$/.test(u)) v*=1000; else if(f.unit==="g"&&v<10&&!/^(gram|g|gr|grams)$/.test(u)) v=100; }
+        o[f.key]=v; ci++; while(ci<fields.length&&parseFloat(String(fields[ci].value).replace(",","."))>0) ci++; }
+      return o; };
+    return {icon:"🍽️",title:T("Yemek","Food"),text,fields,absorb,calc:v=>{ let kc=0,p=0; fields.forEach(f=>{ const g=(v[f.key]||0)*f.factor, def=getFood(f.k); if(def){ kc+=(def[2]||0)*g/100; p+=(def[3]||0)*g/100; } }); return kc>0?`${Math.round(kc)} kcal · ${Math.round(p*10)/10} g ${T("protein","protein")}`:""; },
       commit:v=>{ fields.forEach(f=>{ const g=Math.round((v[f.key]||0)*f.factor*10)/10; if(g>0) day().food.push({f:f.k,g}); }); save(); render(); }}; }
   function doSummary(tok){
     if(!/(özet|durum|kaldı|kalan|kaç|ne kadar|summary|status|left|remain|how much)/.test(tok.join(" "))) return false;
@@ -3243,7 +3259,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     confirmCard("🗑️",T("Son kayıt silinsin mi?","Delete the last entry?"),[nm],()=>{ const e=d[l].pop(); if(l==="food"&&e&&e.ph){ try{ dropPhoto(e.ph); }catch(x){} } save(); render(); say(T("Silindi.","Deleted.")); }); return true; }
   async function handle(text){
     const tok=norm(text).split(" ").filter(Boolean);
-    if(doDelete(tok)) return; if(doSummary(tok)) return; if(doDay(tok)) return;
+    if(doDelete(tok)||doSummary(tok)||doDay(tok)){ vfClose(); return; }
     const d=draftWeight(tok,text)||draftCardio(tok,text)||draftStrength(tok,text)||draftFood(text);
     if(!d){ vfClose(); msg(T("Anlayamadım: “","I didn't understand: “")+e2(text)+T("”. Tekrar dene.","”. Try again.")); return; }
     vfRun(d);
