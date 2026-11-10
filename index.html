@@ -3060,7 +3060,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   /* ===== Sesli komut: tüm uygulamayı yönetir (yemek, su, kilo, kardiyo, spor, özet, gün, sil) ===== */
   const say=(txt,cb)=>{ if(S.vout===false||!window.speechSynthesis){ cb&&cb(); return; } let fin=false; const f=()=>{ if(!fin){ fin=true; cb&&cb(); } };
     try{ const u=new SpeechSynthesisUtterance(txt); u.lang=tr()?"tr-TR":"en-US"; u.onend=f; u.onerror=f; speechSynthesis.cancel(); speechSynthesis.speak(u); setTimeout(f,9000); }catch(e){ f(); } };
-  let micErr="",micInfo="";
+  let micErr="",micInfo="",micLog="";
   const inFrame=(()=>{ try{ return window.self!==window.top; }catch(e){ return true; } })();
   const micMsg=()=>{ const c=micErr;
     if(c==="not-allowed"||c==="service-not-allowed"||c==="start-failed") return inFrame? T("Bu önizleme penceresinde mikrofon kapalı. Uygulamayı kendi adresinde (tarayıcıda doğrudan) açınca çalışır; iPhone için adres https olmalı.","The microphone is blocked inside this preview. It works when the app is opened on its own address in the browser (https on iPhone).") : T("Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesinden mikrofona izin ver.","Microphone permission was denied. Allow the microphone from the lock icon in the address bar.");
@@ -3069,13 +3069,14 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
     if(c==="no-speech"||!c) return T("Ses duyamadım. Mikrofona yakın konuşup tekrar dene.","I didn't hear anything. Speak closer to the microphone and try again.");
     return T("Mikrofon hatası: ","Microphone error: ")+c; };
   const hear=()=>new Promise(res=>{ if(!SR){ res(""); return; } try{ rec&&rec.abort(); }catch(e){}
-    const r=new SR(); r.lang=tr()?"tr-TR":"en-US"; r.interimResults=true; r.maxAlternatives=1; r.continuous=false; let got="",last="",done=false,t0=Date.now(); micErr=""; micInfo="";
+    const r=new SR(); r.lang=tr()?"tr-TR":"en-US"; r.interimResults=true; r.maxAlternatives=1; r.continuous=false; let got="",last="",done=false,t0=Date.now(); micErr=""; micInfo=""; micLog="";
     const fin=()=>{ if(done) return; done=true; clearTimeout(tm); document.body.classList.remove("listening"); micInfo=`${micErr||"-"}/${Date.now()-t0}ms`; res(got||last); };
     document.body.classList.add("listening");
     const live=x=>{ const el=document.querySelector("#vfill .vf-say"); if(el&&x) el.textContent="“"+x+"”"; };
     r.onresult=e=>{ let txt="",isF=false; for(let i=e.resultIndex;i<e.results.length;i++){ txt+=e.results[i][0].transcript; if(e.results[i].isFinal) isF=true; } last=txt||last; live(last); if(isF){ got=last; try{ r.stop(); }catch(x){} setTimeout(fin,250); } };
     r.onerror=e=>{ micErr=e&&e.error||"error"; };
     r.onend=fin; r.onaudiostart=()=>{ micInfo="audio"; };
+    ["start","audiostart","soundstart","speechstart","speechend","soundend","audioend","nomatch","end"].forEach(n=>r.addEventListener(n,()=>{ micLog+=n+"@"+(Date.now()-t0)+" "; }));
     const tm=setTimeout(()=>{ try{ r.stop(); }catch(x){} setTimeout(fin,600); },12000);
     rec=r; try{ r.start(); }catch(e){ micErr="start-failed"; fin(); } });
   const yes=t=>/(^|\s)(evet|tamam|ekle|olur|doğru|kaydet|yes|yeah|ok|okay|add|sure|correct)(\s|$)/.test(norm(t));
@@ -3207,7 +3208,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   async function cmd(){
     if(!SR){ msg(inFrame? T("Bu önizleme penceresi sesli girişi desteklemiyor. Uygulamayı tarayıcıda kendi adresinde aç.","This preview doesn't support voice input. Open the app on its own address in the browser.") : T("Bu tarayıcı sesli komutu desteklemiyor. Chrome veya Safari'nin güncel sürümünü dene.","This browser doesn't support voice input. Try a recent Chrome or Safari.")); return; }
     vfListening(); const my=vfTok; const t=await hear(); if(my!==vfTok) return;
-    if(!t){ vfClose(); msg(micMsg()+" ["+(micInfo||micErr||"-")+"]"); return; }
+    if(!t){ vfClose(); typeBox(micMsg(),"["+(micInfo||micErr||"-")+"] "+micLog); return; }
     handle(t); }
   window.__voiceCmd=cmd;
   document.getElementById("voice-cmd").onclick=cmd;
@@ -3215,6 +3216,16 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   const _render=render; render=function(){ const r=_render.apply(this,arguments); try{ lab(); }catch(e){} return r; };
   window.__voiceHandle=handle;
   function msg(t){ const old=document.getElementById("vc"); if(old) old.remove(); const ov=document.createElement("div"); ov.id="vc"; ov.innerHTML=`<div class="vc-box"><h2>🎤</h2><p class="vc-h">${t}</p><div class="vc-b"><button type="button" class="btn-ghost" id="vc-x">${T("Tamam","OK")}</button></div></div>`; document.body.appendChild(ov); ov.querySelector("#vc-x").onclick=()=>ov.remove(); }
+  function typeBox(why,code){ const old=document.getElementById("vc"); if(old) old.remove(); const ov=document.createElement("div"); ov.id="vc"; ov.setAttribute("role","dialog");
+    ov.innerHTML=`<div class="vc-box"><h2>⌨️ ${T("Yazarak söyle","Type it instead")}</h2><p class="vc-h">${e2(why)}</p>
+      <p class="vc-h">${T("Aşağıya yaz ya da klavyedeki 🎤 simgesine basıp konuş:","Type below, or tap the 🎤 on your keyboard and speak:")}</p>
+      <input id="vt-in" type="text" inputmode="text" autocomplete="off" autocapitalize="off" placeholder="${T("ör. iki yumurta","e.g. two eggs")}" style="width:100%;box-sizing:border-box;font-size:1.1rem;padding:14px;border-radius:12px;border:1px solid #888;margin:6px 0 10px">
+      <div class="vc-b"><button type="button" class="add food" id="vt-ok">${T("Gönder","Send")}</button><button type="button" class="btn-ghost" id="vt-x">${T("Vazgeç","Cancel")}</button></div>
+      <p style="font-size:.7rem;opacity:.6;word-break:break-all;margin:10px 0 0">${e2(code||"")}</p></div>`;
+    document.body.appendChild(ov); const inp=ov.querySelector("#vt-in");
+    const go=()=>{ const v=inp.value.trim(); ov.remove(); if(v) handle(v); };
+    ov.querySelector("#vt-ok").onclick=go; ov.querySelector("#vt-x").onclick=()=>ov.remove();
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } }); setTimeout(()=>{ try{inp.focus();}catch(x){} },150); }
   let rec=null;
   function listen(){
     if(!SR){ msg(T("Bu tarayıcı sesli komutu desteklemiyor. Chrome veya Safari'nin güncel sürümünü dene.","This browser doesn't support voice input. Try a recent Chrome or Safari.")); return; }
