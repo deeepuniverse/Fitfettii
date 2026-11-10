@@ -1,41 +1,39 @@
 <!doctype html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fitfetti mikrofon testi</title>
+<title>Mikrofon testi 2</title>
 <style>
-body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:18px;background:#111;color:#f4f4f4;line-height:1.45}
-h1{font-size:1.3rem;margin:0 0 6px} p{margin:6px 0 14px;color:#cfcfcf}
-button{display:block;width:100%;font-size:1.1rem;padding:16px;margin:10px 0;border:0;border-radius:14px;background:#ff7a1a;color:#111;font-weight:700}
-button.b2{background:#2a2a2a;color:#fff}
-#log{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,monospace;background:#1b1b1b;border-radius:12px;padding:12px;min-height:160px}
-.ok{color:#7ee787}.bad{color:#ff7b72}
+body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:16px;background:#111;color:#f4f4f4;line-height:1.4}
+h1{font-size:1.2rem;margin:0 0 6px} p{margin:4px 0 10px;color:#cfcfcf;font-size:.95rem}
+button{display:block;width:100%;font-size:1.05rem;padding:14px;margin:8px 0;border:0;border-radius:14px;background:#ff7a1a;color:#111;font-weight:700;text-align:left}
+button.s{background:#2a2a2a;color:#fff;text-align:center}
+#log{white-space:pre-wrap;font:13px/1.45 ui-monospace,Menlo,monospace;background:#1b1b1b;border-radius:12px;padding:10px;min-height:120px;margin-top:10px}
+.ok{color:#7ee787}.bad{color:#ff7b72}.h{color:#79c0ff}
 </style></head><body>
-<h1>Mikrofon testi</h1>
-<p>Bu sayfayı <b>Safari'de</b> aç. Önce 1. düğmeye, sonra 2. düğmeye bas. Ekrandaki yazıların hepsinin ekran görüntüsünü gönder.</p>
-<button id="b1">1) Mikrofon iznini dene</button>
-<button id="b2" class="b2">2) Konuşma tanımayı dene (konuş: "iki yumurta")</button>
+<h1>Mikrofon testi 2</h1>
+<p>Her deneyi ayrı ayrı yap. Her birinde iki cümle söyleyeceksin: önce "iki yumurta", sonra "dört adet". En sonda alttaki yazının ekran görüntüsünü at. Denemeler arasında "Temizle"ye basıp sayfayı yenile.</p>
+<button id="A">A) Tek uzun oturum<br><small>Bir kez dokun. "iki yumurta" de, 2 sn bekle, "dört adet" de.</small></button>
+<button id="B">B) Aynı nesneyi yeniden başlat<br><small>Dokun, "iki yumurta" de. Yazı çıkınca bir daha dokun, "dört adet" de.</small></button>
+<button id="C">C) Mikrofonu açık tutarak<br><small>Dokun, "iki yumurta" de. Yazı çıkınca bir daha dokun, "dört adet" de.</small></button>
+<button class="s" id="X">Temizle</button>
 <div id="log"></div>
 <script>
-const L=document.getElementById('log');
-const t0=Date.now();
-function log(m,c){ const s=document.createElement('div'); if(c) s.className=c; s.textContent=((Date.now()-t0)/1000).toFixed(1)+'s  '+m; L.appendChild(s); }
-log('Tarayıcı: '+navigator.userAgent.slice(0,110));
-log('Adres: '+location.protocol+'//'+location.host);
-log('Konuşma tanıma var mı: '+((window.SpeechRecognition||window.webkitSpeechRecognition)?'EVET':'HAYIR'), (window.SpeechRecognition||window.webkitSpeechRecognition)?'ok':'bad');
-log('Ana sayfada gömülü mü: '+(window.self!==window.top?'EVET (sorun olabilir)':'hayır'));
-document.getElementById('b1').onclick=async()=>{
-  log('mikrofon izni isteniyor…');
-  try{ const s=await navigator.mediaDevices.getUserMedia({audio:true});
-    log('MİKROFON İZNİ TAMAM ('+s.getAudioTracks().length+' kanal)','ok'); s.getTracks().forEach(x=>x.stop());
-  }catch(e){ log('MİKROFON HATASI: '+e.name+' - '+e.message,'bad'); }
-};
-document.getElementById('b2').onclick=()=>{
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ log('Bu tarayıcıda konuşma tanıma yok','bad'); return; }
-  const r=new SR(); r.lang='tr-TR'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
-  ['start','audiostart','soundstart','speechstart','speechend','soundend','audioend','nomatch','end'].forEach(n=>r['on'+n]=()=>log('olay: '+n));
-  r.onresult=e=>{ let x=''; for(let i=e.resultIndex;i<e.results.length;i++) x+=e.results[i][0].transcript; log('DUYDUM: "'+x+'"','ok'); };
-  r.onerror=e=>log('HATA: '+e.error+(e.message?' - '+e.message:''),'bad');
-  try{ r.start(); log('start() çağrıldı, şimdi konuş…'); }catch(e){ log('start hatası: '+e.message,'bad'); }
-  setTimeout(()=>{ try{ r.stop(); log('10 sn doldu, durduruldu'); }catch(e){} },10000);
-};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition, L=document.getElementById('log'), t0=Date.now();
+const log=(m,c)=>{ const d=document.createElement('div'); if(c) d.className=c; d.textContent=((Date.now()-t0)/1000).toFixed(1)+'s '+m; L.appendChild(d); };
+document.getElementById('X').onclick=()=>{ L.innerHTML=''; };
+function wire(r,tag){
+  ['start','audiostart','speechstart','speechend','audioend','end'].forEach(n=>r.addEventListener(n,()=>log(tag+' '+n)));
+  r.onresult=e=>{ let x='',fin=false; for(let i=e.resultIndex;i<e.results.length;i++){ x+=e.results[i][0].transcript; if(e.results[i].isFinal) fin=true; } log(tag+' DUYDUM'+(fin?' (kesin)':'')+': "'+x+'"', fin?'ok':''); };
+  r.onerror=e=>log(tag+' HATA: '+e.error+(e.message?' - '+e.message:''),'bad');
+}
+function mk(cont){ const r=new SR(); r.lang='tr-TR'; r.interimResults=true; r.continuous=cont; r.maxAlternatives=1; return r; }
+// A: one long continuous session
+document.getElementById('A').onclick=()=>{ log('--- A: tek uzun oturum ---','h'); const r=mk(true); wire(r,'A'); try{ r.start(); }catch(e){ log('A start hatası '+e.message,'bad'); } setTimeout(()=>{ try{ r.stop(); }catch(e){} log('A: 25 sn doldu'); },25000); };
+// B: reuse same instance
+let rb=null;
+document.getElementById('B').onclick=()=>{ log('--- B: aynı nesne ---','h'); if(!rb){ rb=mk(false); wire(rb,'B'); } try{ rb.start(); }catch(e){ log('B start hatası '+e.message,'bad'); } setTimeout(()=>{ try{ rb.stop(); }catch(e){} },9000); };
+// C: keep mic stream open while recognising
+let stream=null;
+document.getElementById('C').onclick=async()=>{ log('--- C: mikrofon açık ---','h'); try{ if(!stream){ stream=await navigator.mediaDevices.getUserMedia({audio:true}); log('C: mikrofon akışı açıldı ve açık tutuluyor','ok'); } }catch(e){ log('C mikrofon hatası '+e.message,'bad'); }
+  const r=mk(false); wire(r,'C'); try{ r.start(); }catch(e){ log('C start hatası '+e.message,'bad'); } setTimeout(()=>{ try{ r.stop(); }catch(e){} },9000); };
+log('Tarayıcı: '+navigator.userAgent.slice(20,80));
 </script></body></html>
