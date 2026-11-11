@@ -2296,7 +2296,7 @@ function setSync(st){syncState=st;const el=$("sync"),t=L(); el.className="sync o
 /* ---- collapsible sections (open/closed state kept per browser) ---- */
 const COLL=[["sci-h","sci"],["g-h","goals"],["s-h","summary"],["f-h","food"],["pw-h","pw"],["st-h","str"],["c-h","car"],["h-h","hist"],["ls-h","lists"]];
 if(!S.coll||typeof S.coll!=="object") S.coll={};
-["lists","food","pw","str","car","hist"].forEach(k=>{ if(S.coll[k]===undefined) S.coll[k]=true; }); // start closed: the home screen stays short
+["lists","food","pw","str","car","hist","goals","sci"].forEach(k=>{ S.coll[k]=true; }); // menus always start closed on every launch // start closed: the home screen stays short
 const COLL_APPLY={}; window.__collOnly=key=>{ Object.keys(COLL_APPLY).forEach(k=>{ if(k!==key&&!S.coll[k]){ S.coll[k]=true; COLL_APPLY[k](); } }); };
 COLL.forEach(([hid,key])=>{
   const h=$(hid); if(!h) return; const sec=h.closest("section"), head=h.closest(".sec-head")||h;
@@ -2310,6 +2310,8 @@ COLL.forEach(([hid,key])=>{
   head.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(); } });
   apply();
 });
+// leaving the app (home button, other tab, lock screen) closes every menu
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"){ Object.keys(COLL_APPLY).forEach(k=>{ if(k!=="summary"&&!S.coll[k]){ S.coll[k]=true; COLL_APPLY[k](); } }); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} } });
 
 /* ---- "type your own dish": the chosen AI estimates per-100 values, or the user enters them ---- */
 let dsType="m", dsBusy=false;
