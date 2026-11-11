@@ -3206,7 +3206,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   }
   const exMatch=words=>{ words=words.join(" ").replace(/\b(push|pull|sit|chin) ?(up|ups|ap|aps|app|apps)\b/g,"$1up").split(" ").map(w=>{ const m=w.match(/^(push|pull|sit|chin)-?ups?$/); return m?norm({push:"şınav",pull:"barfiks",sit:"mekik",chin:"chin"}[m[1]]):w; }); let best=null,bs=0; for(const k of Object.keys(EXS)){ const nm=[EXS[k][0],EXS[k][1]].map(n=>norm(String(n||"").replace(/\(.*?\)/g," ")).split(" ").filter(w=>w.length>=3)); let sc=0;
       for(const nt of nm) for(const n of nt) for(const w of words){ if(w===n) sc+=n.length+2; else if(n.length>=5&&w.length>=5&&w.slice(0,5)===n.slice(0,5)) sc+=n.length; else if(near(w,n)) sc+=n.length; } if(sc>bs){ bs=sc; best=k; } } return bs>=5?best:null; };
-  const CAR_WORDS=[[/^(koşu|koş\w*|koştum|run\w*|jog\w*)$/,"tm",9],[/^(yürüyüş|yürü\w*|yürüdüm|walk\w*)$/,"tm",5],[/^(bisiklet\w*|bike|biking|cycl\w*)$/,"bk",20],[/^(yüzme\w*|yüzdüm|yüzüyor\w*|swim\w*)$/,"swim"],[/^(kürek|row\w*)$/,"row"],[/^(eliptik|elliptical)$/,"ell"],[/^(ip|rope|jump)$/,"rope"],[/^hiit$/,"hiit"]];
+  const CAR_WORDS=[[/^(koşu|koş\S*|koştum|run\S*|jog\S*)$/,"tm",9],[/^(yürüyüş|yürü\S*|yürüdüm|walk\S*)$/,"tm",5],[/^(bisiklet\S*|bike|biking|cycl\S*)$/,"bk",20],[/^(yüzme\S*|yüzdüm|yüzüyor\S*|swim\S*)$/,"swim"],[/^(kürek|row\S*)$/,"row"],[/^(eliptik|elliptical)$/,"ell"],[/^(ip|rope|jump)$/,"rope"],[/^hiit$/,"hiit"]];
   /* ---- doldurma satırı: anlaşılan bilgiler ana ekranda, alan alan doldurulur ---- */
   let vfTok=0;
   const vf=()=>document.getElementById("vfill");
@@ -3301,7 +3301,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
       commit:v=>{ const e={a:"ex",x:v.x,s:Math.round(v.s),r:Math.round(v.r)}; if(v.w>0) e.w=Math.round(v.w*100)/100; day().str.push(e); save(); render(); }}; }
   function draftWeight(tok,text){
     if(/(^| )(set|sets|sett|tekrar|rep|reps|kez|defa|seri)( |$)/.test(tok.join(" "))||exMatch(tok.filter(w=>w.length>=3))) return null; // spor cümlesi, vücut kilosu değil
-    if(!tok.some(t=>/^(kilom|kilomu|tartı\w*|ağırlığ\w*|weigh\w*|weight)$/.test(t))&&!/(kilo\w* (oldum|geldim)|ağırlığım)/.test(tok.join(" "))) return null;
+    if(!tok.some(t=>/^(kilom|kilomu|tart\S*|ağırlığ\S*|weigh\S*|weight)$/.test(t))&&!/(kilo\S* (oldum|geldim)|ağırlığım)/.test(tok.join(" "))) return null;
     const n=numIn(tok); const j=tok.join(" "), lbSaid=/(^| )(lb|lbs|pound|pounds|libre)( |$)/.test(j), kgSaid=/(kilo|(^| )kg( |$))/.test(j), isLb=lbSaid||(!kgSaid&&wU()==="lb");
     let v=n?n[0]:0; if(!(v>20&&v<400)) v=0;
     return {icon:"⚖️",title:T("Kilo","Weight"),text,fields:[{key:"w",label:T("Kilo","Weight"),unit:isLb?"lb":"kg",value:v?String(v):"",q:T("Kaç kilo?","What is your weight?")}],calc:x=>x.w>0?`${fmt1(x.w)} ${isLb?"lb":"kg"}`:"",
