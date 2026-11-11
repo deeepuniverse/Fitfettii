@@ -761,7 +761,7 @@ html[data-easy] section.card:has(#g-h),html[data-easy] section.card:has(#st-h),h
 
 <nav class="dock" aria-label="Quick add">
   <button type="button" id="dk-food"><span aria-hidden="true">🍽️</span><b data-t="scFood">Yemek</b></button>
-  <button type="button" id="dk-photo"><span aria-hidden="true">📷</span><b data-t="scPhoto">Fotoğraf</b></button>
+  <button type="button" id="dk-photo"><span aria-hidden="true">📷</span><b data-t="scPhoto">Foto tanı</b></button>
   <button type="button" id="dk-bar"><span aria-hidden="true">▥</span><b data-t="scBarcode">Barkod</b></button>
   <button type="button" id="dk-water"><span aria-hidden="true">💧</span><b data-t="scWater">Su</b></button>
   <button type="button" id="dk-meas"><span aria-hidden="true">📏</span><b id="dk-meas-t">Ölçüler</b></button>
@@ -882,7 +882,7 @@ html[data-easy] section.card:has(#g-h),html[data-easy] section.card:has(#st-h),h
       <div class="f sm" id="f-ck-wrap" hidden><label for="f-ck">kcal</label><input id="f-ck" type="number" inputmode="numeric" min="0"></div>
       <label class="chk save-q" id="f-save-wrap" hidden><input type="checkbox" id="f-save" class="save-new"> <span data-t="saveOne"></span></label>
       <div class="f sm" id="f-cp-wrap" hidden><label for="f-cp" data-t="protG">Protein (g)</label><input id="f-cp" type="number" inputmode="decimal" min="0" step="any"></div>
-      <label class="btn-ghost ph-btn" for="f-photo" id="f-photo-lbl"><span aria-hidden="true">📷</span> <span data-t="phAttach">Fotoğraf</span></label>
+      <label class="btn-ghost ph-btn" for="f-photo" id="f-photo-lbl"><span aria-hidden="true">📷</span> <span data-t="phAttach">Resim ekle</span></label>
       <input type="file" id="f-photo" accept="image/*" hidden>
       <button type="button" class="btn-ghost ph-btn" id="f-voice" aria-label="Voice"><span aria-hidden="true">🎤</span> <span id="f-voice-t"></span></button>
       <button type="button" class="btn-ghost ph-btn water-btn" id="add-water">+ su</button>
@@ -916,7 +916,7 @@ html[data-easy] section.card:has(#g-h),html[data-easy] section.card:has(#st-h),h
     </div>
     <div class="ai-box" id="ai">
       <div class="ai-head"><h3 data-t="aiTitle">Fotoğraftan ekle</h3>
-        <label class="btn-ghost ph-btn" for="ai-file"><span aria-hidden="true">📷</span> <span data-t="aiPick">Öğün fotoğrafı seç</span></label>
+        <label class="btn-ghost ph-btn" for="ai-file"><span aria-hidden="true">📷</span> <span data-t="aiPick">Fotoğraftan tanı</span></label>
         <input type="file" id="ai-file" accept="image/*" hidden>
       </div>
       <p class="hint" data-t="aiHint">Fotoğrafı seç, sonra hangi yapay zekânın tanıyacağını seç. Tabaktakiler resmin üstünde oklarla gösterilir; gramajları sen girersin.</p>
@@ -1097,7 +1097,7 @@ const T = {
     dsPickAi:"Değerleri bulmak için açılan kutudan bir yapay zekâ seç; ya da “Değerleri kendim gireceğim” de.", dsNone:"Değer bulunamadı. Adı farklı yaz ya da değerleri kendin gir.",
     dsEdit:"Değerleri değiştirebilirsin.", dsManualNote:"Kalori ve proteini 100 g (ya da 100 ml) için yaz; ambalajda varsa oradan al.", dsAdded:"“{0}” bugüne eklendi.",
     saveOne:"Bu yemek listene kaydedilsin mi? (bir dahakine hazır olur)", saveOnePw:"Bu ürün listene kaydedilsin mi? (bir dahakine hazır olur)", saveMany:"Listede olmayan yemekler listene kaydedilsin mi?", per100k:"kcal / 100 {0}", per100p:"Protein / 100 {0} (g)",
-    aiTitle:"Fotoğraftan ekle", aiPick:"Öğün fotoğrafı seç", aiHint:"Fotoğrafı seç, sonra hangi yapay zekânın tanıyacağını seç. Tabaktakiler resmin üstünde oklarla gösterilir; gramajları sen girersin.",
+    aiTitle:"Fotoğraftan ekle", aiPick:"Fotoğraftan tanı", aiHint:"Fotoğrafı seç, sonra hangi yapay zekânın tanıyacağını seç. Tabaktakiler resmin üstünde oklarla gösterilir; gramajları sen girersin.",
     aiWhich:"Fotoğrafı hangi yapay zekâ tanısın?", ai_gemini:"Google hesabıyla ücretsiz anahtar; günlük ücretsiz kotası var.", ai_openai:"Kendi OpenAI hesabın; kullanım başına ücretli.", ai_anthropic:"Kendi Anthropic hesabın; kullanım başına ücretli.",
     ai_shortcut:"Anahtarsız, ücretsiz. Fotoğraf Apple'ın yapay zekâsına gider. Bir kerelik kestirme kurulumu gerekir (Apple Intelligence'lı iPhone).", scHelp:"Bir kerelik kurulum: Kestirmeler uygulamasını aç, + de, “Modeli Kullan” (Use Model) eylemini ekle, Özel Bulut Hesaplama'yı seç, aşağıdaki metni isteme yapıştır, sonuna “Kestirme Girdisi” değişkenini ekle. Kestirmeye “Fitfetti Foto” adını ver.", scCopy:"Metni kopyala", scCopied:"Kopyalandı ✓", scCopyFail:"Kopyalanamadı", scRun:"Kestirmeyi aç", scOpening:"Kestirmeler açılıyor…", scClip:"Fotoğraf kopyalanamadı. Safari'de yapıştırmaya izin verip tekrar dene.", scCancel:"Vazgeçildi.", scFail:"Kestirme çalışmadı. “Fitfetti Foto” kurulu mu?",
     aiNone:"Yapay zekâ kullanma", aiNoneSub:"Fotoğrafı sadece kayda ekle; yiyeceği kendin seç.", aiKeyLbl:"{0} API anahtarı", aiShow:"Göster",
@@ -1110,7 +1110,7 @@ const T = {
     phFound:"{0} şey bulundu. Her biri için miktarı gir, istemediklerinin işaretini kaldır.", phPer100:"≈ {0} kcal · {1} g protein / 100 {2}", phListed:"listede var",
     phAdd:"Seçilenleri ekle", phAdded:"{0} kayıt eklendi.", phNeedAmt:"Eklemek için en az bir kalemin miktarını gir.",
     offSrc:"Değerler ambalaj etiketinden",
-    phAttach:"Fotoğraf", phChange:"Fotoğrafı değiştir", phRemove:"Fotoğrafı kaldır", phView:"Fotoğrafı büyüt", phReady:"yeni fotoğraf seçildi",
+    phAttach:"Resim ekle", phChange:"Resmi değiştir", phRemove:"Fotoğrafı kaldır", phView:"Fotoğrafı büyüt", phReady:"yeni fotoğraf seçildi",
     pwTitle:"Protein tozu ve takviye", pwProduct:"Ürün", pwName:"Ürün adı (etiketteki)", pwKcalScoop:"kcal / ölçek", pwProtScoop:"Protein / ölçek (g)",
     pwScoops:"Ölçek", pwCount:"Adet", pwScoopG:"1 ölçek (g)", pwPieceG:"1 adet (g)", pwMix:"Neyle karıştırdın?", pwNoMix:"Karıştırmadım / kuru",
     pwMine:"Kendi ürünlerim", pwPowders:"Protein tozları", pwOther:"Diğer takviyeler", pwCustom:"Etiketten gir (kendi ürünüm)",
@@ -1143,7 +1143,7 @@ const T = {
     epLbl:"Bölüm {0}", nextLbl:"Sonraki bölüm:", replay:"↻ Tekrar izle",
     wlTitle:"Hoş geldin! Önce seni tanıyalım", wlSub:"Kalori, protein ve su hedeflerini senin için hesaplayalım. Bilgilerin sadece bu telefonda kalır.", wlGo:"Başla", wlSkip:"Şimdilik geç", wlNeed:"Devam etmek için yaş, cinsiyet, boy, şu anki ve hedef kiloyu gir.", scOpen:"Aç", scClose:"Kapat",
     pieces:"Adet", pcs:"adet",
-    settings:"Ayarlar", setBack:"‹ Geri", scFood:"Yemek", scPhoto:"Fotoğraf", scBarcode:"Barkod", scWater:"Su",
+    settings:"Ayarlar", setBack:"‹ Geri", scFood:"Yemek", scPhoto:"Foto tanı", scBarcode:"Barkod", scWater:"Su",
     winFight:"Kılıç savaşı başladı!", winHint:"Dokun, proteini parçala!", winHit:"Vur!", winBtn:"Harika!", winSkip:"Kapat",
     bounce:["Düşmek kaybetmek değil; kalkmamak kaybetmektir.","Bir gün eksik, seriyi bozmaz; bırakmak bozar.","Kaslar bir günde yapılmaz, bir günde de kaybolmaz.","Yarın, temiz bir sayfa.","En iyi antrenman, tekrar ayağa kalkmaktır."],
     syncDevice:"Bu cihaza kaydediliyor", lkScan:"Barkod okut", lkPick:"Ürünü seç; girdiğin miktar bugüne eklenir.", offline:"İnternet yok. Arama için bağlantı gerekiyor; kayıt eklemeye devam edebilirsin.", scanFail:"Kamera açılamadı. Barkod numarasını elle yazabilirsin.",
@@ -1204,7 +1204,7 @@ const T = {
     dsPickAi:"Pick an AI in the box that opened, or choose “I'll enter the values myself”.", dsNone:"No values found. Try another name or enter them yourself.",
     dsEdit:"You can change the values.", dsManualNote:"Enter calories and protein per 100 g (or 100 ml); use the package label if there is one.", dsAdded:"Added “{0}” for today.",
     saveOne:"Save this food to your list? (ready for next time)", saveOnePw:"Save this product to your list? (ready for next time)", saveMany:"Save the foods that aren't on your list?", per100k:"kcal / 100 {0}", per100p:"Protein / 100 {0} (g)",
-    aiTitle:"Add from photo", aiPick:"Choose meal photo", aiHint:"Pick a photo, then choose which AI recognizes it. Items are marked on the photo with arrows; you enter the amounts.",
+    aiTitle:"Add from photo", aiPick:"Recognize from photo", aiHint:"Pick a photo, then choose which AI recognizes it. Items are marked on the photo with arrows; you enter the amounts.",
     aiWhich:"Which AI should recognize the photo?", ai_gemini:"Free key with a Google account; has a daily free quota.", ai_openai:"Your own OpenAI account; paid per use.", ai_anthropic:"Your own Anthropic account; paid per use.",
     ai_shortcut:"No key, free. The photo goes to Apple's AI. Needs a one-time shortcut setup (iPhone with Apple Intelligence).", scHelp:"One-time setup: open the Shortcuts app, tap +, add the action “Use Model”, choose Private Cloud Compute, paste the text below into the prompt and add the “Shortcut Input” variable after it. Name the shortcut “Fitfetti Foto”.", scCopy:"Copy the text", scCopied:"Copied ✓", scCopyFail:"Could not copy", scRun:"Open Shortcuts", scOpening:"Opening Shortcuts…", scClip:"Could not copy the photo. Allow pasting in Safari and try again.", scCancel:"Cancelled.", scFail:"The shortcut did not run. Is “Fitfetti Foto” set up?",
     aiNone:"Don't use AI", aiNoneSub:"Just attach the photo; pick the food yourself.", aiKeyLbl:"{0} API key", aiShow:"Show",
@@ -1217,7 +1217,7 @@ const T = {
     phFound:"Found {0} items. Enter an amount for each, untick anything you don't want.", phPer100:"≈ {0} kcal · {1} g protein / 100 {2}", phListed:"on your list",
     phAdd:"Add selected", phAdded:"Added {0} entries.", phNeedAmt:"Enter an amount for at least one item to add it.",
     offSrc:"Values from the package label",
-    phAttach:"Photo", phChange:"Change photo", phRemove:"Remove photo", phView:"View photo", phReady:"new photo selected",
+    phAttach:"Add picture", phChange:"Change picture", phRemove:"Remove photo", phView:"View photo", phReady:"new photo selected",
     pwTitle:"Protein powder & supplements", pwProduct:"Product", pwName:"Product name (from label)", pwKcalScoop:"kcal / scoop", pwProtScoop:"Protein / scoop (g)",
     pwScoops:"Scoops", pwCount:"Count", pwScoopG:"1 scoop (g)", pwPieceG:"1 piece (g)", pwMix:"Mixed with", pwNoMix:"Nothing / dry",
     pwMine:"My products", pwPowders:"Protein powders", pwOther:"Other supplements", pwCustom:"Enter from label (my product)",
@@ -1250,7 +1250,7 @@ const T = {
     epLbl:"Episode {0}", nextLbl:"Next episode:", replay:"↻ Watch again",
     wlTitle:"Welcome! Let's get to know you", wlSub:"We'll work out your calorie, protein and water goals. Your info stays on this phone only.", wlGo:"Start", wlSkip:"Skip for now", wlNeed:"To continue, enter age, sex, height, current and target weight.", scOpen:"Open", scClose:"Close",
     pieces:"Pieces", pcs:"pcs",
-    settings:"Settings", setBack:"‹ Back", scFood:"Food", scPhoto:"Photo", scBarcode:"Barcode", scWater:"Water",
+    settings:"Settings", setBack:"‹ Back", scFood:"Food", scPhoto:"Scan photo", scBarcode:"Barcode", scWater:"Water",
     winFight:"The sword fight begins!", winHint:"Tap to smash the protein!", winHit:"Strike!", winBtn:"Awesome!", winSkip:"Close",
     bounce:["Falling isn't losing; staying down is.","One missed day doesn't break a streak; quitting does.","Muscle isn't built in a day, nor lost in one.","Tomorrow is a clean page.","The best workout is getting back up."],
     syncDevice:"Saved on this device", lkScan:"Scan barcode", lkPick:"Pick the product; the amount you entered is logged for today.", offline:"You're offline. Search needs a connection; you can keep logging.", scanFail:"Couldn't open the camera. Type the barcode number instead.",
