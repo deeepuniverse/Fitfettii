@@ -632,7 +632,7 @@ section.card.collapsed[aria-labelledby="f-h"],section.card.collapsed[aria-labell
 #pf-nudge .x{flex:none;background:transparent;border:0;color:var(--muted);font-size:1.4rem;line-height:1;padding:4px 6px;min-height:40px}
 @keyframes nudgeIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
 /* language picker at the top */
-#lang-top{width:auto;max-width:112px;border-radius:999px;padding:7px 10px;font-weight:700;font-size:.85rem;background:var(--surface);color:var(--fg);border:2px solid var(--line);min-height:40px;margin-left:auto}
+#lang-top{-webkit-appearance:none;appearance:none;background-image:none;width:auto;min-width:92px;max-width:160px;text-align:center;text-align-last:center;text-overflow:clip;overflow:visible;border-radius:999px;padding:7px 16px;font-weight:700;font-size:.85rem;background:var(--surface);color:var(--fg);border:2px solid var(--line);min-height:40px;margin-left:auto}
 header #lang-top+#set-open{margin-left:6px}
 /* modal + about text */
 .pf-modal{position:fixed;inset:0;z-index:70;background:rgba(10,12,28,.55);display:grid;place-items:center;padding:16px}
@@ -1096,6 +1096,7 @@ const T = {
     saveOne:"Bu yemek listene kaydedilsin mi? (bir dahakine hazır olur)", saveOnePw:"Bu ürün listene kaydedilsin mi? (bir dahakine hazır olur)", saveMany:"Listede olmayan yemekler listene kaydedilsin mi?", per100k:"kcal / 100 {0}", per100p:"Protein / 100 {0} (g)",
     aiTitle:"Fotoğraftan ekle", aiPick:"Öğün fotoğrafı seç", aiHint:"Fotoğrafı seç, sonra hangi yapay zekânın tanıyacağını seç. Tabaktakiler resmin üstünde oklarla gösterilir; gramajları sen girersin.",
     aiWhich:"Fotoğrafı hangi yapay zekâ tanısın?", ai_gemini:"Google hesabıyla ücretsiz anahtar; günlük ücretsiz kotası var.", ai_openai:"Kendi OpenAI hesabın; kullanım başına ücretli.", ai_anthropic:"Kendi Anthropic hesabın; kullanım başına ücretli.",
+    ai_shortcut:"Anahtarsız, ücretsiz. Fotoğraf Apple'ın yapay zekâsına gider. Bir kerelik kestirme kurulumu gerekir (Apple Intelligence'lı iPhone).", scHelp:"Bir kerelik kurulum: Kestirmeler uygulamasını aç, + de, “Modeli Kullan” (Use Model) eylemini ekle, Özel Bulut Hesaplama'yı seç, aşağıdaki metni isteme yapıştır, sonuna “Kestirme Girdisi” değişkenini ekle. Kestirmeye “Fitfetti Foto” adını ver.", scCopy:"Metni kopyala", scCopied:"Kopyalandı ✓", scCopyFail:"Kopyalanamadı", scRun:"Kestirmeyi aç", scOpening:"Kestirmeler açılıyor…", scClip:"Fotoğraf kopyalanamadı. Safari'de yapıştırmaya izin verip tekrar dene.", scCancel:"Vazgeçildi.", scFail:"Kestirme çalışmadı. “Fitfetti Foto” kurulu mu?",
     aiNone:"Yapay zekâ kullanma", aiNoneSub:"Fotoğrafı sadece kayda ekle; yiyeceği kendin seç.", aiKeyLbl:"{0} API anahtarı", aiShow:"Göster",
     aiKeyHelp:"Anahtarı {0} adresinden alabilirsin. Anahtar sadece bu cihazda saklanır, yedeğe girmez; fotoğraf tanıma için doğrudan seçtiğin şirkete gönderilir ve ücret varsa senin hesabından düşer.",
     aiModel:"Model (gelişmiş)", aiRemember:"Bu seçimi hatırla", aiRun:"Tanı", aiAttachOnly:"Fotoğrafı ekle", aiChange:"değiştir", aiUsing:"Yapay zekâ: {0}",
@@ -1202,6 +1203,7 @@ const T = {
     saveOne:"Save this food to your list? (ready for next time)", saveOnePw:"Save this product to your list? (ready for next time)", saveMany:"Save the foods that aren't on your list?", per100k:"kcal / 100 {0}", per100p:"Protein / 100 {0} (g)",
     aiTitle:"Add from photo", aiPick:"Choose meal photo", aiHint:"Pick a photo, then choose which AI recognizes it. Items are marked on the photo with arrows; you enter the amounts.",
     aiWhich:"Which AI should recognize the photo?", ai_gemini:"Free key with a Google account; has a daily free quota.", ai_openai:"Your own OpenAI account; paid per use.", ai_anthropic:"Your own Anthropic account; paid per use.",
+    ai_shortcut:"No key, free. The photo goes to Apple's AI. Needs a one-time shortcut setup (iPhone with Apple Intelligence).", scHelp:"One-time setup: open the Shortcuts app, tap +, add the action “Use Model”, choose Private Cloud Compute, paste the text below into the prompt and add the “Shortcut Input” variable after it. Name the shortcut “Fitfetti Foto”.", scCopy:"Copy the text", scCopied:"Copied ✓", scCopyFail:"Could not copy", scRun:"Open Shortcuts", scOpening:"Opening Shortcuts…", scClip:"Could not copy the photo. Allow pasting in Safari and try again.", scCancel:"Cancelled.", scFail:"The shortcut did not run. Is “Fitfetti Foto” set up?",
     aiNone:"Don't use AI", aiNoneSub:"Just attach the photo; pick the food yourself.", aiKeyLbl:"{0} API key", aiShow:"Show",
     aiKeyHelp:"Get a key at {0}. The key is stored only on this device and never goes into backups; the photo is sent directly to the company you chose, and any cost is billed to your account.",
     aiModel:"Model (advanced)", aiRemember:"Remember this choice", aiRun:"Recognize", aiAttachOnly:"Attach photo", aiChange:"change", aiUsing:"AI: {0}",
@@ -1872,8 +1874,12 @@ document.addEventListener("change",e=>{ if(e.target.classList&&e.target.classLis
 const AI_PROVIDERS={
   gemini:{label:"Google Gemini", model:"gemini-flash-latest", keyUrl:"https://aistudio.google.com/apikey"},
   openai:{label:"OpenAI (ChatGPT)", model:"gpt-5-mini", keyUrl:"https://platform.openai.com/api-keys"},
-  anthropic:{label:"Anthropic Claude", model:"claude-sonnet-5-5", keyUrl:"https://console.anthropic.com/settings/keys"}
+  anthropic:{label:"Anthropic Claude", model:"claude-sonnet-5-5", keyUrl:"https://console.anthropic.com/settings/keys"},
+  shortcut:{label:"iPhone Kestirmesi / Shortcut", nokey:true, ios:true}
 };
+const IS_IOS_DEV=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const SC_NAME="Fitfetti Foto", SCKEY="fitfetti-sc-pending";
+const SC_PROMPT='You look at the attached photo of a meal, snack, drink or packaged food for a calorie tracker. List every distinct food or drink you can see (at most 10). Do not estimate weights. For each item give: name_tr (short Turkish name), name_en (short English name), x and y (the center of the item as fractions of image width and height, between 0 and 1), type ("v" for drinks measured in ml, otherwise "m"), kcal100 and protein100 (typical values per 100 g or 100 ml). Reply with only JSON like {"items":[{"name_tr":"","name_en":"","x":0.5,"y":0.5,"type":"m","kcal100":0,"protein100":0}]} and nothing else.';
 const AIKEY="fitfetti-ai-keys"; // kept apart from S so keys never end up in a backup file
 const aiKeys=()=>{ try{ return JSON.parse(localStorage.getItem(AIKEY)||"{}")||{}; }catch(_){ return {}; } };
 const setAiKey=(p,k)=>{ const o=aiKeys(); if(k) o[p]=k; else delete o[p]; try{ localStorage.setItem(AIKEY,JSON.stringify(o)); }catch(_){} };
@@ -1943,16 +1949,16 @@ function drawMarks(img,svg,items){
   svg.innerHTML=out; }
 function aiRenderPick(){
   const t=L(), cur=S.ai.provider;
-  $("ai-opts").innerHTML=Object.entries(AI_PROVIDERS).map(([k,v])=>`<label class="ai-opt"><input type="radio" name="ai-p" value="${k}" ${k===cur?"checked":""}><span><b>${v.label}</b><small>${esc(t["ai_"+k])}</small></span></label>`).join("")
+  $("ai-opts").innerHTML=Object.entries(AI_PROVIDERS).filter(([k,v])=>!v.ios||(IS_IOS_DEV&&aiPending!=="dish")).map(([k,v])=>`<label class="ai-opt"><input type="radio" name="ai-p" value="${k}" ${k===cur?"checked":""}><span><b>${v.label}</b><small>${esc(t["ai_"+k]||"")}</small></span></label>`).join("")
     +`<label class="ai-opt"><input type="radio" name="ai-p" value="none" ${cur==="none"?"checked":""}><span><b>${esc(t.aiNone)}</b><small>${esc(t.aiNoneSub)}</small></span></label>`;
   aiPickChanged(); }
 function aiSel(){ const r=document.querySelector('input[name="ai-p"]:checked'); return r?r.value:null; }
 function aiPickChanged(){ const p=aiSel(), t=L(), info=AI_PROVIDERS[p];
-  $("ai-key").hidden=!info; $("ai-model").closest("details").hidden=!info;
-  if(info){ $("ai-key-lbl").textContent=fill(t.aiKeyLbl,[info.label]); $("ai-key-in").value=aiKeys()[p]||"";
+  $("ai-key").hidden=!info||!!info.nokey; $("ai-model").closest("details").hidden=!info||!!info.nokey; scHelpShow(p==="shortcut");
+  if(info&&!info.nokey){ $("ai-key-lbl").textContent=fill(t.aiKeyLbl,[info.label]); $("ai-key-in").value=aiKeys()[p]||"";
     $("ai-key-help").innerHTML=fill(t.aiKeyHelp,[`<a href="${info.keyUrl}" target="_blank" rel="noopener">${info.keyUrl.replace(/^https:\/\//,"")}</a>`]);
     $("ai-model").value=(S.ai.models&&S.ai.models[p])||info.model; }
-  $("ai-run").textContent= p==="none"? t.aiAttachOnly : t.aiRun; $("ai-run").disabled=!p; }
+  $("ai-run").textContent= p==="none"? t.aiAttachOnly : p==="shortcut"? (t.scRun||"Open Shortcuts") : t.aiRun; $("ai-run").disabled=!p; }
 document.addEventListener("change",e=>{ if(e.target.name==="ai-p") aiPickChanged(); });
 $("ai-key-show").onclick=()=>{ const i=$("ai-key-in"); i.type= i.type==="password"?"text":"password"; };
 function aiReset(){ aiPending=null; aiFile=null; aiItems=[]; ["ai-stage","ai-pick","ai-chosen","ai-items","ai-actions"].forEach(id=>$(id).hidden=true); $("ai-svg").innerHTML=""; $("ai-items").innerHTML=""; aiSay("");
@@ -1961,11 +1967,11 @@ $("ai-clear").onclick=aiReset; $("ai-cancel").onclick=aiReset;
 $("ai-file").addEventListener("change",async e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f||aiBusy) return; aiReset(); aiFile=f;
   const im=$("ai-img"); im.src=URL.createObjectURL(f); try{ await im.decode(); }catch(_){ aiSay(L().phBadImg,true); aiFile=null; return; }
   $("ai-stage").hidden=false;
-  if(S.ai.remember&&S.ai.provider&&(S.ai.provider==="none"||aiKeys()[S.ai.provider])){ aiRun(S.ai.provider); }
+  if(S.ai.remember&&S.ai.provider&&S.ai.provider!=="shortcut"&&(S.ai.provider==="none"||aiKeys()[S.ai.provider])){ aiRun(S.ai.provider); }
   else { aiRenderPick(); $("ai-pick").hidden=false; $("ai-pick").scrollIntoView({block:"nearest",behavior:"smooth"}); } });
 $("ai-change").onclick=()=>{ $("ai-chosen").hidden=true; aiRenderPick(); $("ai-pick").hidden=false; };
 $("ai-run").onclick=()=>{ const p=aiSel(); if(!p) return; const t=L();
-  if(AI_PROVIDERS[p]){ const k=$("ai-key-in").value.trim(); if(!k){ $("ai-key-in").focus(); aiSay(t.aiNeedKey,true); return; } setAiKey(p,k);
+  if(AI_PROVIDERS[p]&&!AI_PROVIDERS[p].nokey){ const k=$("ai-key-in").value.trim(); if(!k){ $("ai-key-in").focus(); aiSay(t.aiNeedKey,true); return; } setAiKey(p,k);
     const m=$("ai-model").value.trim(); S.ai.models=S.ai.models||{}; if(m&&m!==AI_PROVIDERS[p].model) S.ai.models[p]=m; else delete S.ai.models[p]; }
   S.ai.provider=p; S.ai.remember=$("ai-remember").checked; save();
   if(aiPending==="dish"){ aiPending=null; $("ai-pick").hidden=true; if(p==="none") dishManual(); else dishLookup(); return; }
@@ -1974,6 +1980,7 @@ async function aiRun(p){
   const t=L(); $("ai-pick").hidden=true;
   $("ai-chosen-t").textContent=fill(t.aiUsing,[p==="none"?t.aiNone:AI_PROVIDERS[p].label]); $("ai-chosen").hidden=false;
   if(p==="none"){ pendingPhoto=aiFile; $("f-photo-prev").src=URL.createObjectURL(aiFile); $("f-photo-chip").hidden=false; aiSay(t.aiAttached); $("f-sel").focus(); return; }
+  if(p==="shortcut"){ scLaunch(); return; }
   if(!navigator.onLine){ aiSay(t.offline,true); return; }
   aiBusy=true; aiSay(fill(t.aiLooking,[AI_PROVIDERS[p].label]));
   try{ const small=await shrinkPhoto(aiFile,1280), b64=await blobB64(small);
@@ -1985,6 +1992,32 @@ async function aiRun(p){
     aiSay(st===401||st===403? t.aiBadKey : st===429? t.aiQuota : st===404||st===400? fill(t.aiBadModel,[err.msg||""]) : t.aiNet, true);
     if(st===401||st===403){ S.ai.remember=false; save(); } }
   finally{ aiBusy=false; } }
+/* ---- iPhone Shortcut route: no key, no server. Photo goes to the clipboard, the "Fitfetti Foto" shortcut asks Apple's model, the answer comes back in the URL ---- */
+function scHelpShow(on){ let h=$("ai-sc-help"); if(!h){ h=document.createElement("div"); h.id="ai-sc-help"; h.className="hint"; $("ai-key").insertAdjacentElement("afterend",h); }
+  h.hidden=!on; if(!on) return; const t=L();
+  h.innerHTML=`<p>${esc(t.scHelp||"One-time setup: open the Shortcuts app, tap +, add the action “Use Model”, choose Private Cloud Compute, paste the text below into the prompt and add the “Shortcut Input” variable after it. Name the shortcut “Fitfetti Foto”.")}</p><button type="button" class="btn-ghost" id="ai-sc-copy">${esc(t.scCopy||"Copy the text")}</button>`;
+  $("ai-sc-copy").onclick=async()=>{ try{ await navigator.clipboard.writeText(SC_PROMPT); $("ai-sc-copy").textContent=t.scCopied||"Copied ✓"; }catch(_){ $("ai-sc-copy").textContent=t.scCopyFail||"Could not copy"; } }; }
+const photoPng=(file,max)=>new Promise((res,rej)=>{ const im=new Image(), u=URL.createObjectURL(file); im.onload=()=>{ const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight)), c=document.createElement("canvas"); c.width=Math.round(im.naturalWidth*k); c.height=Math.round(im.naturalHeight*k); c.getContext("2d").drawImage(im,0,0,c.width,c.height); URL.revokeObjectURL(u); c.toBlob(b=>b?res(b):rej(new Error("png")),"image/png"); }; im.onerror=()=>{ URL.revokeObjectURL(u); rej(new Error("img")); }; im.src=u; });
+async function scLaunch(){ const t=L(); if(!aiFile) return;
+  try{ const pngP=photoPng(aiFile,1024);
+    await navigator.clipboard.write([new ClipboardItem({"image/png":pngP})]);
+    const jpg=await shrinkPhoto(aiFile,1024), du=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(jpg); });
+    localStorage.setItem(SCKEY,JSON.stringify({img:du,ts:Date.now()}));
+  }catch(e){ aiSay(t.scClip||"Could not copy the photo. Allow pasting in Safari and try again.",true); return; }
+  const base=location.origin+location.pathname, cb=k=>encodeURIComponent(base+"?sc="+k);
+  aiSay(t.scOpening||"Opening Shortcuts…");
+  location.href="shortcuts://x-callback-url/run-shortcut?name="+encodeURIComponent(SC_NAME)+"&input=clipboard&x-success="+cb("ok")+"&x-cancel="+cb("cancel")+"&x-error="+cb("error"); }
+function scReturn(){ const q=new URLSearchParams(location.search), sc=q.get("sc"); if(!sc) return; const res=q.get("result"); history.replaceState(null,"",location.pathname);
+  let pend=null; try{ pend=JSON.parse(localStorage.getItem(SCKEY)||"null"); localStorage.removeItem(SCKEY); }catch(_){}
+  if(!pend||!pend.img) return; const t=L();
+  fetch(pend.img).then(r=>r.blob()).then(async b=>{ try{ window.__goFood&&window.__goFood(); }catch(_){} aiReset(); aiFile=new File([b],"photo.jpg",{type:b.type||"image/jpeg"});
+    const im=$("ai-img"); im.src=URL.createObjectURL(aiFile); try{ await im.decode(); }catch(_){}
+    $("ai-stage").hidden=false; $("ai-chosen-t").textContent=fill(t.aiUsing,[AI_PROVIDERS.shortcut.label]); $("ai-chosen").hidden=false;
+    S.ai.provider="shortcut"; save();
+    if(sc!=="ok"||!res){ aiSay(sc==="cancel"?(t.scCancel||"Cancelled."):(t.scFail||"The shortcut did not run. Is “Fitfetti Foto” set up?"),true); $("ai").scrollIntoView({block:"start",behavior:"smooth"}); return; }
+    aiItems=aiNormalize(parseJsonLoose(res)); if(!aiItems.length){ aiSay(t.phNone,true); return; }
+    drawMarks(im,$("ai-svg"),aiItems); aiList(); aiSay(fill(t.phFound,[aiItems.length])); $("ai").scrollIntoView({block:"start",behavior:"smooth"}); }).catch(()=>{}); }
+window.addEventListener("load",()=>setTimeout(scReturn,300));
 function aiList(){ const t=L();
   $("ai-items").innerHTML=aiItems.map((it,i)=>{ const ty=it.type, c=PH_COLORS[i%PH_COLORS.length];
     return `<li><span class="ph-num" style="background:${c}">${i+1}</span><div class="ph-row">
@@ -2712,7 +2745,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!pg.hidden) close(); });
   // open sections by link (e.g. "Formüller ve kaynaklar ↓") keep working inside the page
   const openSec=(key,hid)=>{ if(S.coll[key]){ S.coll[key]=false; persistQuiet(); const h=$(hid); h.closest("section").classList.remove("collapsed"); (h.closest(".sec-head")||h).setAttribute("aria-expanded","true"); } };
-  const goFood=()=>{ openSec("food","f-h"); const f=$("f-h").closest("section"); f.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"}); return f; };
+  const goFood=()=>{ openSec("food","f-h"); const f=$("f-h").closest("section"); f.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"}); return f; }; window.__goFood=goFood;
   $("dk-food").onclick=()=>{ goFood(); setTimeout(()=>{ try{ $("f-sel").focus({preventScroll:true}); }catch(e){} },350); };
   $("dk-photo").onclick=()=>{ goFood(); $("ai-file").click(); };
   $("dk-bar").onclick=()=>{ goFood(); const sc=$("lk-scan"); setTimeout(()=>{ if(!sc.hidden) sc.click(); else $("lk-q").focus({preventScroll:true}); },350); };
@@ -2952,7 +2985,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   if(!S.consent){ setTimeout(async()=>{ const t=tx(); await modal({title:t.cH,body:t.cB,ok:t.cGo,check:t.cChk,more:t.cMore}); S.consent=1; save(); if(window.__nudge&&needWelcome()) setTimeout(window.__nudge,400); },350); }
   // before the first photo goes to an AI service (once)
   if(typeof aiRun==="function"){ const _run=aiRun; aiRun=async function(p){
-    if(p!=="none"&&!S.aiOk){ const t=tx(); const ok=await modal({title:t.aiH,body:t.aiB,ok:t.aiGo,cancel:t.aiNo}); if(!ok) return; S.aiOk=1; save(); }
+    if(p!=="none"&&p!=="shortcut"&&!S.aiOk){ const t=tx(); const ok=await modal({title:t.aiH,body:t.aiB,ok:t.aiGo,cancel:t.aiNo}); if(!ok) return; S.aiOk=1; save(); }
     return _run(p); }; }
 })();
 /* ---- voice add: speak "iki yumurta", "200 gram tavuk", "500 ml su" -> confirm card -> added ---- */
