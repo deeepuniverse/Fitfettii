@@ -2297,13 +2297,15 @@ function setSync(st){syncState=st;const el=$("sync"),t=L(); el.className="sync o
 const COLL=[["sci-h","sci"],["g-h","goals"],["s-h","summary"],["f-h","food"],["pw-h","pw"],["st-h","str"],["c-h","car"],["h-h","hist"],["ls-h","lists"]];
 if(!S.coll||typeof S.coll!=="object") S.coll={};
 ["lists","food","pw","str","car","hist"].forEach(k=>{ if(S.coll[k]===undefined) S.coll[k]=true; }); // start closed: the home screen stays short
+const COLL_APPLY={}; window.__collOnly=key=>{ Object.keys(COLL_APPLY).forEach(k=>{ if(k!==key&&!S.coll[k]){ S.coll[k]=true; COLL_APPLY[k](); } }); };
 COLL.forEach(([hid,key])=>{
   const h=$(hid); if(!h) return; const sec=h.closest("section"), head=h.closest(".sec-head")||h;
   if(head===h && h.dataset.t){ const sp=document.createElement("span"); sp.dataset.t=h.dataset.t; sp.textContent=h.textContent; h.removeAttribute("data-t"); h.textContent=""; h.appendChild(sp); }
   head.classList.add("coll-head"); const lb=document.createElement("span"); lb.className="coll-lbl"; lb.innerHTML='<span class="o" data-t="scOpen">Aç</span><span class="c" data-t="scClose">Kapat</span>'; head.appendChild(lb); head.setAttribute("role","button"); head.tabIndex=0;
   const chev=document.createElement("span"); chev.className="chev"; chev.setAttribute("aria-hidden","true"); chev.textContent="▾"; head.appendChild(chev);
   const apply=()=>{ const c=!!S.coll[key]; sec.classList.toggle("collapsed",c); head.setAttribute("aria-expanded",String(!c)); };
-  const toggle=()=>{ S.coll[key]=!S.coll[key]; apply(); try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
+  COLL_APPLY[key]=apply;
+  const toggle=()=>{ S.coll[key]=!S.coll[key]; if(!S.coll[key]) window.__collOnly(key); apply(); try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
   head.addEventListener("click",e=>{ if(e.target.closest("button,a,input,select")&&!e.target.closest(".chev")) return; toggle(); });
   head.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(); } });
   apply();
@@ -2747,7 +2749,7 @@ window.addEventListener("online",()=>{ if($("lk-status").textContent===L().offli
   $("set-open").onclick=open; $("set-close").onclick=close;
   document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!pg.hidden) close(); });
   // open sections by link (e.g. "Formüller ve kaynaklar ↓") keep working inside the page
-  const openSec=(key,hid)=>{ if(S.coll[key]){ S.coll[key]=false; persistQuiet(); const h=$(hid); h.closest("section").classList.remove("collapsed"); (h.closest(".sec-head")||h).setAttribute("aria-expanded","true"); } };
+  const openSec=(key,hid)=>{ if(S.coll[key]){ S.coll[key]=false; if(window.__collOnly) window.__collOnly(key); persistQuiet(); const h=$(hid); h.closest("section").classList.remove("collapsed"); (h.closest(".sec-head")||h).setAttribute("aria-expanded","true"); } };
   const goFood=()=>{ openSec("food","f-h"); const f=$("f-h").closest("section"); f.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"}); return f; }; window.__goFood=goFood;
   $("dk-food").onclick=()=>{ goFood(); setTimeout(()=>{ try{ $("f-sel").focus({preventScroll:true}); }catch(e){} },350); };
   $("dk-photo").onclick=()=>{ goFood(); $("ai-file").click(); };

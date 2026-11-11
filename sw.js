@@ -1,5 +1,5 @@
 // Offline support. Bump VERSION when you publish changes so phones pick up the new files.
-const VERSION = "v66";
+const VERSION = "v67";
 const CORE = ["./", "index.html", "lang-packs.js", "manifest.webmanifest",
   "img/hero.jpg", "img/p1.jpg", "img/p2.jpg", "img/p3.jpg", "img/p4.jpg", "fonts/fonts.css", "fonts/barlow-condensed-latin-600-normal.woff2", "fonts/barlow-condensed-latin-ext-600-normal.woff2", "fonts/barlow-condensed-latin-700-normal.woff2", "fonts/barlow-condensed-latin-ext-700-normal.woff2", "fonts/barlow-condensed-latin-800-normal.woff2", "fonts/barlow-condensed-latin-ext-800-normal.woff2", "fonts/bricolage-grotesque-latin-wght-normal.woff2", "fonts/bricolage-grotesque-latin-ext-wght-normal.woff2", "fonts/figtree-latin-400-normal.woff2", "fonts/figtree-latin-500-normal.woff2", "fonts/figtree-latin-600-normal.woff2", "fonts/figtree-latin-ext-400-normal.woff2", "fonts/figtree-latin-ext-500-normal.woff2", "fonts/figtree-latin-ext-600-normal.woff2", "fonts/jetbrains-mono-latin-500-normal.woff2", "fonts/jetbrains-mono-latin-700-normal.woff2", "fonts/jetbrains-mono-latin-ext-500-normal.woff2", "fonts/jetbrains-mono-latin-ext-700-normal.woff2",
   "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png"];
